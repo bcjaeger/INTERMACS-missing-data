@@ -59,6 +59,12 @@ the_plan <- drake_plan(
                                                   times),
 
 
+  arxiv_preprint = target(
+    command = {
+      rmarkdown::render(knitr_in("doc_arXiv/doc_arXiv.Rmd"))
+      file_out("doc_arXiv/doc_arXiv.pdf")
+    }
+  )
 
   #tbl_characteristics = tabulate_characteristics(im)
 

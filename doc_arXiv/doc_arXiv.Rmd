@@ -1,0 +1,34 @@
+---
+title: Improving Outcome Predictions for Patients Receiving Mechanical Circulatory Support by Optimizing Imputation of Missing Values
+authors:
+  - name: Byron C. Jaeger
+    thanks: Source code available at https://github.com/bcjaeger/INTERMACS-missing-data
+    department: Department of Biostatistics
+    affiliation: University of Alabama at Birmingham
+    location: Birmingham, AL 35211
+    email: bcjaeger@uab.edu
+abstract: |
+  \textbf{Background} Risk predictions play an important role in clinical decision making. When developing risk prediction models, practitioners often impute missing values to the mean. The purpose of this article is to evaluate the impact of applying different strategies to impute missing values on the prognostic accuracy of prediction models fitted to the imputed data. A secondary objective was to compare the accuracy of different imputation methods. To complete these objectives, we used data from the Interagency Registry for Mechanically Assisted Circulatory Support (INTERMACS).  \newline\textbf{Methods and Results} We applied all pairwise combinations of <fill in> different strategies to impute missing values and three different strategies to fit a risk prediction model for mortality and transplant after receiving mechanical circulatory support. Model performance was compared using Concordance (i.e. C-index), Brier Score, and Net reclassification index. Results indicated that multiple  imputation consistently resulted in  superior prognostic models compared  to  other missing data strategies, particularly imputation to the mean. <fill in results> \newline\textbf{Conclusion} Selecting an optimal strategy to handle missing values can have a substantial impact on improving model accuracy.  In the current analysis, multiple imputation emerged as an optimal strategy to handle missing values in the INTERMACS data. The evaluation and selection of the optimal missing data strategy in this work has the potential to improve risk predictions for other longitudinal registries.
+keywords:
+  - Missing Data, 
+  - INTERMACS, 
+  - imputation, 
+  - heart failure, 
+  - mortality, 
+  - risk prediction
+bibliography: references.bib
+output: rticles::arxiv_article
+header-includes:
+   - \usepackage{placeins}
+   - \newcommand{\ie}{\textit{i.e., }}
+   - \newcommand{\eg}{\textit{e.g., }}
+   - \newcommand{\cstat}{\widehat{\textrm{C}}(t)}
+   - \newcommand{\bstat}{\widehat{\textrm{BS}}(t)}
+   - \newcommand{\ibstat}{\mathcal{\widehat{BS}}(\tau)}
+---
+
+# Introduction
+\label{sec:introduction}
+
+Heart disease is a leading cause of death in the United States. Heart failure, a primary component of heart disease, affects over 6 million Americans, and for ~10\% of these patients medical management is no longer effective \cite{benjamin2017heart,national2017health}. Mechanical circulatory support (MCS) is a surgical intervention in which a mechanical device is implanted in parallel to the heart to improve circulation \cite{patel2014contemporary}. Typically, MCS is used while a patient waits for a heart transplant (bridge-to-transplant) or in some cases as an alternative to transplant (destination therapy) \cite{slaughter2009advanced}. Over 250,000 patients could benefit from MCS \cite{miller2011left}. However, less than 4,000 new patients receive a long-term MCS device each year, with widely heterogeneous outcomes \cite{stewart2011keeping}. The 2-year survival on MCS ranges from 61\% for destination therapy to 78\% for bridge-to-transplant \cite{patel2014contemporary}. Therefore, there is great need for reliable predictions of patient-specific probability to experience adverse events after receiving MCS. This information can be used to improve patient selection for MCS,inform the design of next generation pumps, and refine patient management strategies.
+

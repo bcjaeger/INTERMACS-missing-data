@@ -1,0 +1,106 @@
+\documentclass{article}
+
+\usepackage{arxiv}
+
+\usepackage[utf8]{inputenc} % allow utf-8 input
+\usepackage[T1]{fontenc}    % use 8-bit T1 fonts
+\usepackage{hyperref}       % hyperlinks
+\usepackage{url}            % simple URL typesetting
+\usepackage{booktabs}       % professional-quality tables
+\usepackage{amsfonts}       % blackboard math symbols
+\usepackage{nicefrac}       % compact symbols for 1/2, etc.
+\usepackage{microtype}      % microtypography
+\usepackage{lipsum}
+
+\title{Improving Outcome Predictions for Patients Receiving Mechanical
+Circulatory Support by Optimizing Imputation of Missing Values}
+
+\author{
+    Byron C. Jaeger
+    \thanks{Source code available at
+\url{https://github.com/bcjaeger/INTERMACS-missing-data}}
+   \\
+    Department of Biostatistics \\
+    University of Alabama at Birmingham \\
+  Birmingham, AL 35211 \\
+  \texttt{\href{mailto:bcjaeger@uab.edu}{\nolinkurl{bcjaeger@uab.edu}}} \\
+  }
+
+
+\begin{document}
+\maketitle
+
+\def\tightlist{}
+
+
+\begin{abstract}
+\textbf{Background} Risk predictions play an important role in clinical
+decision making. When developing risk prediction models, practitioners
+often impute missing values to the mean. The purpose of this article is
+to evaluate the impact of applying different strategies to impute
+missing values on the prognostic accuracy of prediction models fitted to
+the imputed data. A secondary objective was to compare the accuracy of
+different imputation methods. To complete these objectives, we used data
+from the Interagency Registry for Mechanically Assisted Circulatory
+Support (INTERMACS). \newline\textbf{Methods and Results} We applied all
+pairwise combinations of different strategies to impute missing values
+and three different strategies to fit a risk prediction model for
+mortality and transplant after receiving mechanical circulatory support.
+Model performance was compared using Concordance (i.e.~C-index), Brier
+Score, and Net reclassification index. Results indicated that multiple
+imputation consistently resulted in superior prognostic models compared
+to other missing data strategies, particularly imputation to the mean.
+\newline\textbf{Conclusion} Selecting an optimal strategy to handle
+missing values can have a substantial impact on improving model
+accuracy. In the current analysis, multiple imputation emerged as an
+optimal strategy to handle missing values in the INTERMACS data. The
+evaluation and selection of the optimal missing data strategy in this
+work has the potential to improve risk predictions for other
+longitudinal registries.
+\end{abstract}
+
+\keywords{
+    Missing Data,
+   \and
+    INTERMACS,
+   \and
+    imputation,
+   \and
+    heart failure,
+   \and
+    mortality,
+   \and
+    risk prediction
+  }
+
+\hypertarget{introduction}{%
+\section{Introduction}\label{introduction}}
+
+\label{sec:introduction}
+
+Heart disease is a leading cause of death in the United States. Heart
+failure, a primary component of heart disease, affects over 6 million
+Americans, and for \textasciitilde10\% of these patients medical
+management is no longer effective
+\cite{benjamin2017heart,national2017health}. Mechanical circulatory
+support (MCS) is a surgical intervention in which a mechanical device is
+implanted in parallel to the heart to improve circulation
+\cite{patel2014contemporary}. Typically, MCS is used while a patient
+waits for a heart transplant (bridge-to-transplant) or in some cases as
+an alternative to transplant (destination therapy)
+\cite{slaughter2009advanced}. Over 250,000 patients could benefit from
+MCS \cite{miller2011left}. However, less than 4,000 new patients receive
+a long-term MCS device each year, with widely heterogeneous outcomes
+\cite{stewart2011keeping}. The 2-year survival on MCS ranges from 61\%
+for destination therapy to 78\% for bridge-to-transplant
+\cite{patel2014contemporary}. Therefore, there is great need for
+reliable predictions of patient-specific probability to experience
+adverse events after receiving MCS. This information can be used to
+improve patient selection for MCS,inform the design of next generation
+pumps, and refine patient management strategies.
+
+\bibliographystyle{unsrt}
+\bibliography{references.bib}
+
+
+\end{document}
