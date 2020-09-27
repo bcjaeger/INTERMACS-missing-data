@@ -22,8 +22,8 @@ R.utils::sourceDirectory("../R")
 
   # train/test split -----
 
-  im_train_raw <- im[-testing_index, ] #%>% slice_sample(prop = 1/10)
-  im_test_raw  <- im[ testing_index, ] #%>% slice_sample(prop = 1/2)
+  im_train_raw <- im[-testing_index, ] %>% slice_sample(prop = 1/3)
+  im_test_raw  <- im[ testing_index, ] %>% slice_sample(prop = 1/2)
 
   too_many_missing <- im_train_raw %>%
     miss_var_summary() %>%
@@ -115,6 +115,7 @@ R.utils::sourceDirectory("../R")
 
   # redefine features, since some features may have been dropped by step_nzv
   features <- setdiff(names(im_train_pre_impute), c('time', 'status'))
+  analysis_variables <- names(im_train_pre_impute)
 
   # redefine amputed values to account for dropped features
   for(i in names(amputed_values)){
@@ -134,13 +135,24 @@ R.utils::sourceDirectory("../R")
 
   n_miss_vars <- length(miceranger_var_names)
 
-  miceranger_vars <- vector(mode = 'list', length = n_miss_vars)
+  miceranger_vars_trn <- miceranger_vars_tst <-
+    vector(mode = 'list', length = n_miss_vars)
 
-  for(i in seq_along(miceranger_vars)){
+  for(i in seq_along(miceranger_vars_trn)){
 
-    names(miceranger_vars)[i] <- miceranger_var_names[i]
-    # dont use the outcome to impute a predictor
-    miceranger_vars[[i]] <- setdiff(features, miceranger_var_names[i])
+    names(miceranger_vars_trn)[i] <- miceranger_var_names[i]
+    names(miceranger_vars_tst)[i] <- miceranger_var_names[i]
+
+    # do use the outcome to impute a predictor in the training data
+    miceranger_vars_trn[[i]] <- setdiff(analysis_variables,
+                                        miceranger_var_names[i])
+    # dont use the outcome to impute a predictor in the testing data
+    # (while we can assume that the outcomes in the training data are
+    #  known, it should be obvious that the outcomes in the testing data
+    #  are unknown or should be assumed to be unknown)
+    miceranger_vars_tst[[i]] <- setdiff(features,
+                                        miceranger_var_names[i])
+
 
   }
 
@@ -150,6 +162,17 @@ R.utils::sourceDirectory("../R")
     step_meanimpute(all_numeric()) %>%
     step_modeimpute(all_nominal()) %>%
     prep()
+
+  # qp objects are used to make parsimonious models for mice imputation
+  # one qp object is made for training data that uses the outcome variable
+  # and another qp object is made for testing data that does not.
+  qp_trn = im_train_pre_impute %>%
+    quickpred(mincor = 0.10, minpuc = 0.05)
+
+  qp_tst = im_test_pre_impute %>%
+    # do not use testing outcomes to impute missing data
+    select(-time, -status) %>%
+    quickpred(mincor = 0.10, minpuc = 0.05)
 
   # initialize all but fill only the imputations designated by md_strat
   mia <- meanmode_si <-
@@ -179,20 +202,16 @@ R.utils::sourceDirectory("../R")
   }
   if('pmm' %in% md_strat) {
 
-    qp = im_train_pre_impute %>%
-      select(-time, -status) %>%
-      quickpred(mincor = 0.10, minpuc = 0.05)
-
     pmm_trn <- im_train_pre_impute %>%
-      select(-time, -status) %>%
-      mice(pred = qp,
+      mice(pred = qp_trn,
            m = n_impute_mi,
            maxit = 10,
            method = 'pmm')
 
     pmm_tst <- im_test_pre_impute %>%
+      # do not use testing outcomes to impute missing data
       select(-time, -status) %>%
-      mice(pred = qp,
+      mice(pred = qp_tst,
            m = n_impute_mi,
            maxit = 10,
            method = "pmm")
@@ -203,12 +222,7 @@ R.utils::sourceDirectory("../R")
       testing = map(complete(pmm_tst, 'all'), as_tibble)
     ) %>%
       mutate(
-        training = map(
-          training,
-          ~bind_cols(time = im_train_pre_impute$time,
-                     status = im_train_pre_impute$status,
-                     .x)
-        ),
+        # bind the testing outcomes back into the testing data
         testing = map(
           testing,
           ~bind_cols(time = im_test_pre_impute$time,
@@ -222,20 +236,16 @@ R.utils::sourceDirectory("../R")
   }
   if('bayesreg' %in% md_strat){
 
-    qp = im_train_pre_impute %>%
-      select(-time, -status) %>%
-      quickpred(mincor = 0.10, minpuc = 0.05)
-
     bayesreg_trn <- im_train_pre_impute %>%
-      select(-time, -status) %>%
-      mice(pred = qp,
+      mice(pred = qp_trn,
            m = n_impute_mi,
            maxit = 10,
            defaultMethod = c("norm","logreg","polyreg","polr"))
 
     bayesreg_tst <- im_test_pre_impute %>%
+      # do not use testing outcomes to impute missing data
       select(-time, -status) %>%
-      mice(pred = qp,
+      mice(pred = qp_tst,
            m = n_impute_mi,
            maxit = 10,
            defaultMethod = c("norm","logreg","polyreg","polr"))
@@ -246,12 +256,7 @@ R.utils::sourceDirectory("../R")
       testing = map(complete(bayesreg_tst, 'all'), as_tibble)
     ) %>%
       mutate(
-        training = map(
-          training,
-          ~bind_cols(time = im_train_pre_impute$time,
-                     status = im_train_pre_impute$status,
-                     .x)
-        ),
+        # bind the testing outcomes back into the testing data
         testing = map(
           testing,
           ~bind_cols(time = im_test_pre_impute$time,
@@ -270,6 +275,9 @@ R.utils::sourceDirectory("../R")
       select(where(is.numeric)) %>%
       names()
 
+    # hotdeck imputation sorts by numeric feature and then
+    # uses the rows closest to a current row to sample a donor value.
+    # outcomes are not used in either testing or training set.
     hotdeck_trn <- hotdeck_safe(data = im_train_pre_impute,
                                 ord_var = numeric_features[1:5],
                                 recipe = pipe_meanmode_impute)
@@ -316,68 +324,154 @@ R.utils::sourceDirectory("../R")
   }
   if('nbrs_mi' %in% md_strat){
 
-    nbrs_mi <-
-      brew_nbrs(im_train_pre_impute, outcome = c(time, status)) %>%
-      spice(k_neighbors = rep(10, 5), aggregate = FALSE) %>%
-      verbose_on(level = 2) %>%
-      mash() %>%
-      stir(timer = TRUE) %>%
-      ferment(data_new = im_test_pre_impute) %>%
-      bottle() %>%
-      tidy_nbrs()
+    nbrs_trn <- impute_nbrs(
+      data_ref = im_train_pre_impute,
+      cols = everything(),
+      k_neighbors = rep(10, n_impute_mi),
+      aggregate = FALSE,
+      verbose = TRUE
+    ) %>%
+      as_tibble() %>%
+      transmute(
+        impute = impute,
+        training = map(
+          imputed_values,
+          ~ipa:::fill_na(data = im_train_pre_impute,
+                         vals = .x)
+        )
+      )
+
+    nbrs_tst <- impute_nbrs(
+      data_ref = im_test_pre_impute,
+      cols = -c(time, status),
+      k_neighbors = rep(10, n_impute_mi),
+      aggregate = FALSE,
+      verbose = TRUE
+    ) %>%
+      as_tibble() %>%
+      transmute(
+        impute = impute,
+        testing = map(
+          imputed_values,
+          ~ipa:::fill_na(data = im_test_pre_impute,
+                         vals = .x)
+        )
+      )
+
+    nbrs_mi <- left_join(nbrs_trn, nbrs_tst)
+
 
   }
   if('nbrs_si' %in% md_strat){
 
-    nbrs_si <-
-      brew_nbrs(im_train_pre_impute, outcome = c(time, status)) %>%
-      spice(k_neighbors = 10, aggregate = TRUE) %>%
-      verbose_on(level = 2) %>%
-      mash() %>%
-      stir(timer = TRUE) %>%
-      ferment(data_new = im_test_pre_impute) %>%
-      bottle() %>%
-      tidy_nbrs()
+    nbrs_trn <- impute_nbrs(
+      data_ref = im_train_pre_impute,
+      cols = everything(),
+      k_neighbors = 10,
+      aggregate = TRUE,
+      verbose = TRUE
+    ) %>%
+      as_tibble() %>%
+      transmute(
+        impute = impute,
+        training = map(
+          imputed_values,
+          ~ipa:::fill_na(data = im_train_pre_impute,
+                         vals = .x)
+        )
+      )
+
+    nbrs_tst <- impute_nbrs(
+      data_ref = im_test_pre_impute,
+      cols = -c(time, status),
+      k_neighbors = 10,
+      aggregate = TRUE,
+      verbose = TRUE
+    ) %>%
+      as_tibble() %>%
+      transmute(
+        impute = impute,
+        testing = map(
+          imputed_values,
+          ~ipa:::fill_na(data = im_test_pre_impute,
+                         vals = .x)
+        )
+      )
+
+    nbrs_si <- left_join(nbrs_trn, nbrs_tst)
 
   }
   if('ranger_si' %in% md_strat){
 
-    ranger_si_train <- miceRanger(
+    ranger_si_trn <- miceRanger(
       data = im_train_pre_impute,
       m = 1,
       maxiter = 10,
-      vars = miceranger_vars,
-      returnModels = TRUE,
+      vars = miceranger_vars_trn,
+      returnModels = FALSE,
       verbose = TRUE,
       num.trees = 500
-    )
+    ) %>%
+      completeData() %>%
+      set_names(1:length(.)) %>%
+      enframe(name = 'impute', value = 'training') %>%
+      mutate(training = map(training, as_tibble))
 
-    ranger_si_test <- impute(data = im_test_pre_impute,
-                             miceObj = ranger_si_train)
+    ranger_si_tst <- miceRanger(
+      data = im_test_pre_impute,
+      m = 1,
+      maxiter = 10,
+      vars = miceranger_vars_tst,
+      returnModels = FALSE,
+      verbose = TRUE,
+      num.trees = 500
+    ) %>%
+      completeData() %>%
+      set_names(1:length(.)) %>%
+      enframe(name = 'impute', value = 'testing') %>%
+      mutate(testing = map(testing, as_tibble))
 
-    ranger_si = tidy_ranger(ranger_si_train, ranger_si_test)
+    ranger_si = left_join(ranger_si_trn, ranger_si_tst) %>%
+      mutate(impute = as.numeric(impute))
 
-    rm(ranger_si_train, ranger_si_test)
+    rm(ranger_si_trn, ranger_si_tst)
 
   }
   if('ranger_mi' %in% md_strat){
 
-    ranger_mi_train <- miceRanger(
+
+    ranger_mi_trn <- miceRanger(
       data = im_train_pre_impute,
       m = n_impute_mi,
-      vars = miceranger_vars,
-      meanMatchCandidates = 10,
-      returnModels = TRUE,
+      maxiter = 10,
+      vars = miceranger_vars_trn,
+      returnModels = FALSE,
       verbose = TRUE,
       num.trees = 500
-    )
+    ) %>%
+      completeData() %>%
+      set_names(1:length(.)) %>%
+      enframe(name = 'impute', value = 'training') %>%
+      mutate(training = map(training, as_tibble))
 
-    ranger_mi_test <- impute(data = im_test_pre_impute,
-                             miceObj = ranger_mi_train)
+    ranger_mi_tst <- miceRanger(
+      data = im_test_pre_impute,
+      m = n_impute_mi,
+      maxiter = 10,
+      vars = miceranger_vars_tst,
+      returnModels = FALSE,
+      verbose = TRUE,
+      num.trees = 500
+    ) %>%
+      completeData() %>%
+      set_names(1:length(.)) %>%
+      enframe(name = 'impute', value = 'testing') %>%
+      mutate(testing = map(testing, as_tibble))
 
-    ranger_mi <- tidy_ranger(ranger_mi_train, ranger_mi_test)
+    ranger_mi = left_join(ranger_mi_trn, ranger_mi_tst) %>%
+      mutate(impute = as.numeric(impute))
 
-    rm(ranger_mi_train, ranger_mi_test)
+    rm(ranger_mi_trn, ranger_mi_tst)
 
   }
 
