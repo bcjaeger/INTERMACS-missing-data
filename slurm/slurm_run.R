@@ -7,7 +7,7 @@ R.utils::sourceDirectory("../R")
                          md_strat,
                          outcome,
                          additional_missing_pct = 0,
-                         n_features = 150,
+                         n_features = 50,
                          n_impute_mi = 5,
                          times = 6,
                          maxtime = 8) {
@@ -462,15 +462,6 @@ R.utils::sourceDirectory("../R")
   imputes %>%
     group_by(md_strat) %>%
     summarize(
-      rf = list(
-        predict_risk_rf(
-          training = training,
-          testing = testing,
-          pipeline = recipe_post_impute,
-          verbose = TRUE,
-          times = times
-        )
-      ),
       cph = list(
         predict_risk_cph(
           training = training,
@@ -522,7 +513,7 @@ R.utils::sourceDirectory("../R")
     'nbrs_mi',
     'nbrs_si'
   ),
-  additional_missing_pct = c(0, 20, 40),
+  additional_missing_pct = c(0, 15, 30),
   outcome = c('dead', 'txpl'),
   iteration = 1:100
 )
