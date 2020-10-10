@@ -11,6 +11,9 @@ data
 # uncleaned results
 *.rds
 
+# latex logs
+*.log
+
 # Example code in package build process
 *-Ex.R
 

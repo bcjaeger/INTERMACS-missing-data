@@ -18,7 +18,7 @@ make_risk_evaluation <- function(mc_cv_results, im, resamples, times) {
 
     .risk_predictions <- mc_cv_results %>%
       filter(iteration == r,
-             !map_lgl(sprobs, ~length(.x)==0)) %>%
+             map_lgl(sprobs, ~all(!is.na(.x)))) %>%
       group_by(outcome, additional_missing_pct) %>%
       nest() %>%
       rename(risk_prediction = data)
@@ -55,7 +55,6 @@ make_risk_evaluation <- function(mc_cv_results, im, resamples, times) {
 
   }
 
-  browser()
   bind_rows(risk_eval, .id = 'iteration')
 
 }

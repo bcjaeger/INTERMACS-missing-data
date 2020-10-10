@@ -42,21 +42,21 @@ missing values on the prognostic accuracy of prediction models fitted to
 the imputed data. A secondary objective was to compare the accuracy of
 different imputation methods. To complete these objectives, we used data
 from the Interagency Registry for Mechanically Assisted Circulatory
-Support (INTERMACS). \newline\textbf{Methods and Results} We applied all
-pairwise combinations of different strategies to impute missing values
-and three different strategies to fit a risk prediction model for
+Support (INTERMACS). \newline\textbf{Methods and Results} We applied
+thirteen different strategies to impute missing values in combination
+with three different strategies to fit a risk prediction model for
 mortality and transplant after receiving mechanical circulatory support.
-Model performance was compared using Concordance (i.e.~C-index), Brier
-Score, and Net reclassification index. Results indicated that multiple
-imputation consistently resulted in superior prognostic models compared
-to other missing data strategies, particularly imputation to the mean.
-\newline\textbf{Conclusion} Selecting an optimal strategy to handle
-missing values can have a substantial impact on improving model
-accuracy. In the current analysis, multiple imputation emerged as an
-optimal strategy to handle missing values in the INTERMACS data. The
-evaluation and selection of the optimal missing data strategy in this
-work has the potential to improve risk predictions for other
-longitudinal registries.
+Model performance was measured by 12-month discrimination, calibration
+and net reclassification index. Results indicated that multiple
+imputation consistently provided prediction models with greater
+prognostic accuracy than other missing data strategies, particularly
+imputation to the mean. \newline\textbf{Conclusion} Selecting an optimal
+strategy to handle missing values impacts the prognostic accuracy of
+downstream models. In the current analysis, multiple imputation emerged
+as an optimal strategy to handle missing values in the INTERMACS data.
+The current study shows that evaluation and selection of an optimal
+strategy to impute missing data has the potential to improve prognostic
+accuracy of risk predictions for other longitudinal registries.
 \end{abstract}
 
 \keywords{
@@ -78,6 +78,8 @@ longitudinal registries.
 
 \label{sec:introduction}
 
+\linenumbers
+
 Heart disease is a leading cause of death in the United States. Heart
 failure, a primary component of heart disease, affects over 6 million
 Americans, and for \textasciitilde10\% of these patients medical
@@ -94,10 +96,400 @@ a long-term MCS device each year, with widely heterogeneous outcomes
 \cite{stewart2011keeping}. The 2-year survival on MCS ranges from 61\%
 for destination therapy to 78\% for bridge-to-transplant
 \cite{patel2014contemporary}. Therefore, there is great need for
-reliable predictions of patient-specific probability to experience
-adverse events after receiving MCS. This information can be used to
-improve patient selection for MCS,inform the design of next generation
-pumps, and refine patient management strategies.
+reliable predictions of patient-specific risk to experience adverse
+events after receiving MCS. This information can be used to improve
+patient selection for MCS, inform the design of next generation pumps,
+and refine patient management strategies.
+
+The Interagency Registry for Mechanically Assisted Circulatory Support
+(INTERMACS) was launched to improve MCS patient outcomes through the
+collection of patient characteristics, medical events, and long terms
+outcomes at a nation wide level. Currently, INTERMACS comprises over
+20,000 patients who have received a MCS device. As the largest registry
+for data on patients receiving MCS devices, INTERMACS has been leveraged
+to develop numerous risk prediction models for mortality and other types
+of adverse events that may occur after receiving a device
+\cite{kirklin2017eighth, kormos2019society, Adamo950}. A critical step
+for developing risk prediction models is handling missing data, which is
+common in a ``real world'' database that is not designed for the rigor
+of data completeness found in a clinical trial. While some missing
+values are related to data entry error, others may relate to instability
+of a patient's circulatory status at the time of implant. For instance,
+hemodynamic laboratory values are missing for patients in whom invasive
+catheterizations were not performed. Patients without invasive
+cathaderizations may be too ill (unstable) to tolerate the procedure.
+Instead, such patients may, after determination of basic hemodynamics,
+proceed directly to device placement.
+
+The primary aim of this article is to quantify how much the prognostic
+value of a risk prediction model developed from the INTERMACS registry
+depends on the strategy that was applied to impute missing data prior to
+developing the model. A secondary aim is to measure imputation accuracy
+of each strategy by introducing varying levels of artificial missing
+data and then imputing it. Because imputation to the mean has been a
+standard method for multiple annual summaries of the INTERMACS data, we
+measure the potential improvement in prognostic value of a risk
+prediction model when other strategies are applied to impute missing
+data \emph{instead of imputation to the mean}. The over-arching aim is
+to clarify which imputation strategies are most likely to improve risk
+prediction (and by extension, quality of care) for patients who receive
+MCS devices. This investigation can directly inform future analyses of
+INTERMACS data and provide evidence quantifying the benefit of imputing
+missing data with sound methodology.
+
+\hypertarget{methods}{%
+\section{Methods}\label{methods}}
+
+\label{sec:methods}
+
+Here we describe the INTERMACS Registry (Section \ref{subsec:intermacs})
+and give a broad overview of general objectives for imputation of
+missing data in the context of statistical inference and supervised
+statistical learning (Section \ref{subsec:inference_and_learning}). We
+then describe thirteen strategies to handle missing values (Section
+\ref{subsec:imputation}) and three strategies to develop risk prediction
+models after missing data have been imputed (Section
+\ref{subsec:modeling}). Next, we describe how risk prediction models and
+by extension the imputation strategy applied before training the model
+were evaluated in Section \ref{subsec:evaluation}. Last, we outline an
+internal validation procedure that was applied to compare combinations
+of imputation and modeling strategies using hierarchical Bayesian models
+in Section \ref{subsec:internal}.
+
+\hypertarget{intermacs-registry}{%
+\subsection{INTERMACS Registry}\label{intermacs-registry}}
+
+\label{subsec:intermacs}
+
+INTERMACS is a North American observational registry for patients
+receiving MCS devices that began as a partnership between the National
+Heart, Lung, and Blood Institute, US Food and Drug Administration, the
+Centers for Medicaid and Medicare Services, industry, and individual
+hospitals with the mission of improving MCS outcomes. In 2018, INTERMACS
+became an official Society of Thoracic Surgeons database.
+
+The current analysis was conducted using publicly available data
+provided by the National Heart, Lung, and Blood Institute. We included a
+contemporary cohort of 14,738 patients who received continuous flow LVAD
+from 2012-2017. Patient follow-up begins after implantation of a
+durable, long term MCS device and continues while the device is in
+place. Registry endpoints include death on a device, heart
+transplantation, or cessation of support (for recovery and non-recovery
+reasons). INTERMACS collects pre-implant patient characteristics,
+medical status, laboratory values, and many other variables. Data is
+collected at regularly scheduled follow-up as well as during adverse
+events such as re-hospitalization. This is a secondary analysis of
+de-identified data obtained from the National Heart Lung and Blood
+Institute. Primary data collection is approved through University of
+Alabama Institutional Review Board and at individual sites.
+
+\hypertarget{statistical-inference-and-learning-with-missing-data}{%
+\subsection{Statistical Inference and Learning with Missing
+data}\label{statistical-inference-and-learning-with-missing-data}}
+
+\label{subsec:inference_and_learning}
+
+\paragraph{Statistical Inference}
+
+Previous research has thoroughly investigated statistical inference in
+the context of missing data. In this setting, analysts often create
+multiple imputed datasets, replicate an analysis in each of them, and
+then pool their results to obtain valid test statistics for hypothesis
+testing \cite{rubin2004multiple}. Imputation strategies that create a
+single imputed dataset (\textit{e.g., }imputation to the mean) have been
+shown to increase type I errors (\textit{i.e., }rejecting a true null
+hypothesis) for inferential statistics by artificially reducing the
+variance of observed data and ignoring the uncertainty attributed to
+missing values \cite{van2018flexible}. When very few data are missing,
+analysts may apply listwise deletion, which removes any observation with
+at least one missing value and produces a dataset with fewer
+observations and no missing values.
+
+\paragraph{Statistical Learning}
+
+In the presence of missing data, the goal of supervised statistical
+learning is to develop a prediction function for an outcome variable
+that accurately generalizes to testing data, which may or may not
+contain missing values \cite{hastie2009elements}. Because testing data
+may contain missing values, listwise deletion is not a feasible strategy
+for statistical learning tasks. In contrast to statistical inference,
+strategies that create a single imputed dataset are often used for
+statistical learning \cite{kuhn2019feature}. Previous work has
+emphasized the importance of imputation strategies with greater
+accuracy, suggesting that more accurate imputation strategies lead to
+better performance of downstream models (\textit{i.e., }models fitted to
+the imputed data) \cite{jerez2010missing}. Others have shown that
+imputation to the mean, model-based imputation, and multiple imputation
+can provide Bayes-optimal prediction models provided certain assumptions
+are true, but these assumptions are difficult to validate in applied
+settings \cite{josse2019consistency}.
+
+\hypertarget{missing-data-strategies}{%
+\subsection{Missing Data Strategies}\label{missing-data-strategies}}
+
+\label{subsec:imputation}
+
+\paragraph{Single and multiple imputation}
+
+Several of the imputation methods we considered allowed for creation of
+one or many imputed datasets. For downstream models fitted to multiple
+sets of imputed data, we applied the modeling technique to each imputed
+training set, separately, and then used a pooling technique to generate
+a single set of predictions based on multiple imputed testing data.
+Specifically, we created 10 imputed training and testing sets, then
+applied a modeling procedure to each imputed training set and computed
+model predictions on the corresponding imputed testing set, which led to
+10 sets of predictions. To aggregate these predictions, we computed the
+median for each observation. Informal experiments where the mean was
+used instead of the median to aggregate predictions showed little or no
+difference in the model's prediction accuracy.
+
+\paragraph{Imputation to the mean}
+
+Imputing data to the mean involves three steps. First, numeric and
+nominal variables are identified. Second, for each numeric variable, the
+mean is computed and used to impute missing values in the corresponding
+variable. Third, for each nominal variable, the mode is computed
+(because one cannot compute a mean for categorical variables) and used
+to impute missing values in the corresponding variable. The computed
+means and modes are then stored for future imputation of testing data.
+Because imputation to the mean is frequently used in practice, we use it
+as a reference for comparison of all other strategies to impute missing
+values,
+
+\paragraph{Bayesian Regression}
+
+Imputation with Bayesian regression draws imputed values from the
+posterior distribution of model parameters, accounting for uncertainty
+in both model error and estimation \cite{rubin2004multiple}. Multiple
+imputation with chained equations (MICE), a well known technique for
+generating multiply imputed data
+\cite{azur2011multiple, van2018flexible, van2006fully}. In each
+iteration of MICE, each specified variable in the dataset is imputed
+using the other variables in the dataset. These iterations are run until
+convergence criteria have been met.
+
+\paragraph{Predictive Mean Matching (PMM)}
+
+PMM computes predicted values from a pre-specified model that treats one
+incomplete column in the data, \(X\), as a dependent variable. For each
+missing value in \(X\), PMM identifies a set of candidate donors based
+on distance in predicted values of \(X\) \cite{landerman1997empirical}.
+One donor is randomly drawn from the candidates, and the observed value
+of the donor is taken to replace the missing value. When missing values
+were imputed using PMM, we applied MICE to form multiple imputed
+datasets. For consistency with other approaches, we also generated a
+single imputed dataset using PMM by randomly selecting one of the
+multiple datasets imputed.
+
+\paragraph{K-Nearest-Neighbors (KNN)}
+
+KNN imputation identifies \(k\) `similar' observations
+(\textit{i.e., }neighbors) for each observation with a missing value in
+a given variable \cite{chen2000nearest}. A donor value for the current
+missing value is generated by sampling or aggregating the values from
+the \(k\) nearest neighbors. In the current analysis, we identified 10
+nearest neighbors using Gower's distance \cite{gower}. When imputing a
+single dataset using KNN, we aggregated values from nearest neighbors
+using the median for numeric variables and the mode for categorical
+variables. When imputing multiple datasets using KNN, we sampled one
+value at random from nearest neighbors for each imputed set.
+
+\paragraph{Hot Deck}
+
+Similar to KNN, hot deck imputation finds \(k\) similar observations for
+each observation with a missing value in a given variable
+\cite{andridge2010hotdeck}. However, hot deck imputation uses a less
+computationally intensive approach, either identifying neighbors at
+random or using a subset of variables to find similar observations. When
+imputing a single dataset using hot deck imputation, we used a selection
+of 5 variables simultaneously to identify nearest neighbors. When
+imputing multiple datasets using hot deck imputation, we used a separate
+numeric variable for each dataset.
+
+\paragraph{Random forests}
+
+The random forest framework can be used for imputation as well as
+prediction. In the current analysis, we implement \texttt{miceRanger},
+an R package similar to \texttt{missForest} that implements MICE with
+random forests by implementing PMM \cite{missForest}.
+\texttt{miceRanger} follows an iterative procedure where one random
+forest is fit to each variable in a dataset, separately, and then used
+to impute missing values in that variable. The procedure may repeat
+until estimated generalization error of the random forest collection
+stabilizes. When imputing a single dataset with \texttt{miceRanger}, we
+did not use PMM and instead imputed missing values with a prediction.
+When imputing multiple datasets, we implemented PMM with 10 donor
+candidates.
+
+\paragraph{Missingness incorporated as an attribute (MIA)}
+
+MIA adds another observed category to nominal variables: ``Missing''.
+For numeric variables, MIA creates two columns: one where missing values
+are imputed with positive infinity and the other with negative infinity.
+When a decision tree uses a finite cut-point to split a given numeric
+variable, it will assess the cut-point using both the positive and
+negative infinite imputed columns, and utilize whichever column provides
+the best split of the current data. This procedure translates to sending
+all missing values to the left or to the right when forming two new
+nodes of the decision tree, using whichever direction results in a
+better split. In the current analysis, we used the MIA strategy only for
+ensembles of boosted decision trees, as it is a well known and
+frequently used strategy for these models
+\cite{twala2009empirical, ding2010investigation}.
+
+\paragraph{Surrogate splitting}
+
+When decision trees search for a variable and cut-point to use for
+growing two new nodes in a decision tree, surrogate splitting will
+temporarily ignore missing values while searching for an initial split.
+Once an initial split is chosen, surrogate splitting searches for a
+split on another variable with observed values for the observations with
+missing values on the initial splitting variable and creates a surrogate
+split based on the new variable that is similar to the original split.
+In the current analysis, we used a maximum of three surrogate splits and
+sent any remaining missing values to the daughter node with higher
+sample size. Additionally, we only used surrogate splitting for
+conditional inference forests, as this strategy is well known and
+frequently used for these models.
+
+\paragraph{Assumptions}
+
+Each missing data strategy poses different assumptions regarding the
+data and the mechanisms that lead to missing values in the data.
+Imputation using Bayesian regression makes the same distributional
+assumptions as the Bayesian models that are applied. The
+\texttt{miceRanger} algorithm does not make any formal distributional
+assumptions, as random forests are non-parametric and can thus handle
+skewed and multi-modal data as well as categorical data that are ordinal
+or non-ordinal. Hot deck and KNN imputation also do not make
+distributional assumptions, but implicitly assume that a missing value
+for a given observation can be approximated by aggregating observed
+values from the \(k\) most similar observations. PMM makes a similar
+implicit assumption, but is slightly more robust to skewed or
+multi-model data because imputed values are sampled directly from
+observed ones. MIA operates based on an implicit assumption that
+missingness itself is informative and surrogate splitting presumes that
+variables with missing values are related to other observed variables
+used by the decision tree. It is difficult to validate these assumptions
+in applied settings and also likely that downstream models will perform
+poorly if an imputation technique's assumptions are invalid.
+
+\hypertarget{risk-prediction-models}{%
+\subsection{Risk Prediction Models}\label{risk-prediction-models}}
+
+\label{subsec:modeling}
+
+We applied three modeling strategies after imputing missing values:
+
+\begin{itemize}
+\tightlist
+\item
+  Cox proportional hazards (PH) model with forward stepwise variable
+  selection
+\item
+  gradient boosted decision trees (hereafter referred to as `boosting')
+\item
+  Conditional inference forest (CIF, an extension of random forests)
+\end{itemize}
+
+A thorough description of stepwise variable selection, boosting, and
+random forests can be found in Sections 6.1.2, 8.2.2, and 8.2.3,
+respectively, of \emph{Introduction to Statistical Learning}
+\cite{james2013introduction}. Sir David Cox's PH model is one of the
+most frequently applied methods for the analysis of right-censored
+time-to-event outcomes \cite{kleinbaum2010survival}. According to the PH
+assumption, the effect of a unit increase in a predictor is
+multiplicative with respect to a baseline hazard function. Boosting
+grows a sequence of decision trees, each using information from the
+previous trees in an attempt to correct their errors
+\cite{friedman2001greedy, chen2016xgboost}. In contrast, random forests
+grow an ensemble of de-correlated decision trees, where each tree is
+grown using a bootstrapped replicate of the original training data
+\cite{Breiman2001}. The CIF obtains unbiased recursive partitioning by
+applying early-stopping and permutation tests and is one of several
+methods that extends random forests to right-censored time-to-event data
+\cite{hothorn2006survival, strobl2007bias, strobl2008conditional, ishwaran2008random, jaeger2019oblique}.
+
+\hypertarget{evaluation-of-predictions}{%
+\subsection{Evaluation of Predictions}\label{evaluation-of-predictions}}
+
+\label{subsec:evaluation}
+
+\paragraph{The Brier score}
+
+The prognostic value of each risk prediction model was primarily
+assessed using the Brier score, which depends on both the discrimination
+and calibration of predicted risk values
+\cite{graf1999assessment, rufibach2010use}. Let \(\tilde{Y}_i(t)\)
+represent the observed status of individual \(i\) at time \(t > 0\) in a
+testing set of \(M\) observations. Suppose \(\tilde{Y}_i(t)=1\) if there
+is an observed event at or before \(t\) and \(\tilde{Y}_i(t)=0\)
+otherwise. The Brier score is computed with
+\begin{equation} \label{eqn:brier_score}
+\widehat{\textrm{BS}}(t)= \frac{1}{M} \sum_{i=1}^{M} \widehat{W}_i(t) \left\{ \tilde{Y}_i(t) - \widehat{S}(t \mid \bm{x}_i) \right\}^2, \end{equation}
+where, for the \(i^{th}\) observation, \(\widehat{S}(t \mid \bm{x}_i)\)
+is the estimated probability of survival at time \(t\) according to a
+given risk prediction model, \(\bm{x}_i\) is the set of input values for
+predictor variables in the model, and \(\widehat{W}_i(t)\) is the
+inverse proportional censoring weight at time \(t\)
+\cite{gerds2006consistent}. Thus, the Brier score is the mean squared
+difference between observed event status and expected event status
+according to a RPE at time \(t\). Throughout the current analysis, we
+set \(t = 6\) months after receiving MCS to focus on short term risk
+prediction. Models have been developed to simultaneously predict short
+term and long term mortality risk after receiving MCS, but these are
+beyond the scope of the current study
+\cite{blackstone1986decomposition}.
+
+\paragraph{The scaled Brier score}
+
+The Brier score is dependent on the rate of observed events, which can
+make it a difficult metric to interpret. It is often more informative to
+scale the Brier score based on the Brier score of a naive model. More
+specifically, for a given risk prediction model, the scaled Brier score
+is computed as
+\[\textrm{Scaled } \widehat{\textrm{BS}}(t)\textrm{ of model } = 1 - \frac{\widehat{\textrm{BS}}(t)\textrm{ of model}}{\widehat{\textrm{BS}}(t)\textrm{ of naive model}}.\]
+As the Brier score for risk prediction is analogous to mean-squared
+error for prediction of a continuous outcome, the scaled Brier score is
+analogous to the \(R^2\) statistic. Similar to the \(R^2\) statistic, a
+scaled \(\widehat{\textrm{BS}}(t)\) of 1.00 and 0.00 indicate a perfect
+and worthless model, respectively. In our analyses, a Kaplan-Meier
+estimate based on the training data (\textit{i.e., }a risk prediction
+model that did not use any predictor variables) provided the naive
+prediction.
+
+\hypertarget{internal-validation-via-monte-carlo-cross-validation-mccv}{%
+\subsection{Internal Validation via Monte-Carlo Cross-Validation
+(MCCV)}\label{internal-validation-via-monte-carlo-cross-validation-mccv}}
+
+\label{subsec:internal}
+
+To assess the prognostic value of each missing data strategy, we
+internally validated a total of FILL IN modeling algorithm based on
+combinations of imputation strategies and modeling strategies described
+in Sections \ref{subsec:imputation} and \ref{subsec:modeling}. For
+convenience, we use the term `modeling algorithm' to denote the
+combination of a missing data strategy and a modeling strategy
+(\textit{e.g., }imputation using mean/mode values followed by fitting
+the PH model with stepwise variable selection) \cite{kuhn2013applied}.
+We conducted internal validation using 150 replicates of Monte-Carlo
+cross validation (MCCV), a resampling technique for internal validation
+(Figure \ref{fig:monte_carlo_cv}).
+
+\paragraph{Steps taken in each MCCV replicate}
+
+In each replicate, 50\% of the available data were used for model
+training and testing. Imputation was conducted in the training and
+testing sets, separately, for each imputation strategy. Some imputation
+strategies (\textit{e.g., }KNN and random forests) used only the
+training data to generate imputed values, whereas others
+(\textit{e.g., }Bayesian regression, PMM, and hot deck)
+
+After imputation, each modeling algorithm (\textit{i.e., }stepwise PH
+models, GBDTs, and the cIF) was applied, separately, to develop a RPE
+for death or transplant that incorporated up to 50 predictor variables
+from the entire collection of covariates available.
 
 \bibliographystyle{unsrt}
 \bibliography{references.bib}

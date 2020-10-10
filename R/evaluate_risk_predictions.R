@@ -10,11 +10,9 @@ evaluate_risk_predictions <- function(risk_predictions,
                                       times,
                                       testing_data) {
 
-
   scores <- risk_predictions %>%
     unite(md_strat, model, col = 'md_strat_mdl', sep = '..') %>%
     select(md_strat_mdl, sprobs) %>%
-    filter(map_lgl(sprobs, ~inherits(.x, 'matrix'))) %>%
     deframe() %>%
     Score(
       formula = Surv(time, status) ~ 1,

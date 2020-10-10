@@ -17,7 +17,8 @@ predict_risk_cph_si <- function(training,
                                 times) {
 
   # prevent hard error when MIA is used.
-  if(any(is.na(training)) | any(is.na(testing))) return(NULL)
+  if(any(is.na(training)) | any(is.na(testing)))
+    return(matrix(NA_real_, nrow = nrow(testing)))
 
   suppressWarnings(
     expr = {

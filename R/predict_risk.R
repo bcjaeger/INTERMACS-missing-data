@@ -86,8 +86,9 @@ predict_risk <- function(training,
       verbose  = verbose,
       times    = times
     ) %>%
-      reduce(`+`) %>%
-      divide_by(length(training))
+      reduce(cbind) %>%
+      apply(1, median) %>%
+      matrix(ncol = 1)
 
   }
 

@@ -28,8 +28,8 @@ predict_risk_xgb_si <- function(training,
   xgb_cv_folds <- xgb_folds(data = .trn, nfolds = 10, strata = status)
 
   xgb_cv_tune <- expand.grid(
-    max_depth = c(1,2,3),
-    min_child_weight = c(1,3,5),
+    max_depth = c(2,4),
+    min_child_weight = c(3),
     colsample_bynode = 1/2,
     subsample = 1/2,
     eta = 0.03,

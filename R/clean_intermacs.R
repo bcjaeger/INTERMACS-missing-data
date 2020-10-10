@@ -20,7 +20,7 @@ clean_intermacs <- function(na_string = c('',
     # drop the identifier (ends with 'ID') columns.
     select(-ends_with("_ID")) %>%
     clean_names() %>%
-    filter(im_impl_yr >=2014) %>%
+    filter(im_impl_yr >=2012) %>%
     remove_constant(na.rm = TRUE, quiet = F) %>%
     remove_empty(which = 'cols') %>%
     remove_empty(which = 'rows') %>%
