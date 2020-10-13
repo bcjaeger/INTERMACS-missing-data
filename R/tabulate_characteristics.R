@@ -54,6 +54,7 @@ tabulate_characteristics <- function(im) {
       pi_device_strategy,
       im_device_ty
     ) %>%
+    mutate(`No. of patients` = 1, .before = 1) %>%
     tbl_summary(
       by = status,
       label = list(
@@ -66,11 +67,16 @@ tabulate_characteristics <- function(im) {
         im_device_ty ~ "Device type"
       ),
       missing = 'no',
+      type = list(`No. of patients` ~ 'continuous'),
       statistic = list(
         all_continuous() ~ "{mean} ({sd})",
-        all_categorical() ~ "{p}"
-      )
+        all_categorical() ~ "{p}",
+        `No. of patients` ~ "{sum}"
+      ),
+      digits = list(`No. of patients` ~ 0)
     ) %>%
-    add_overall(last = FALSE)
+    modify_footnote(update = everything() ~ NA) %>%
+    add_overall(last = FALSE, col_label = '**Overall**') %>%
+    modify_header(stat_by="**{level}**")
 
 }

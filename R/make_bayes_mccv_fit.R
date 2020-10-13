@@ -6,24 +6,19 @@
 ##' @param risk_evaluation
 make_bayes_mccv_fit <- function(risk_evaluation) {
 
-  model_data <- risk_evaluation %>%
-    mutate(md_strat = fct_relevel(md_strat, 'meanmode_si'))
-
-  stan_lm(
-    formula = ipa ~ outcome + md_strat + model + additional_missing_pct,
-    #+ (additional_missing_pct | iteration),
-    data = model_data,
-    prior = R2(0.30)
-  )
-
-  # model_fits_ipa <- map(
-  #   .x = model_data,
-  #   .f = ~ stan_lmer(
-  #     formula = ipa ~ md_strat + model + additional_missing_pct +
-  #       (additional_missing_pct | iteration),
-  #     data = .x
-  #   )
-  # )
-
+  risk_evaluation %>%
+    mutate(md_strat = fct_relevel(md_strat, 'meanmode_si')) %>%
+    select(-bri) %>%
+    pivot_longer(cols = c(auc, ipa), names_to = 'metric') %>%
+    split(f = list(.$outcome,
+                   .$model,
+                   .$metric,
+                   .$additional_missing_pct)) %>%
+    map(
+      ~ stan_lmer(
+        formula = value ~ md_strat + (1 | iteration),
+        data = .x
+      )
+    )
 
 }

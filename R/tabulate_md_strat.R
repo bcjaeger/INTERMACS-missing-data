@@ -15,16 +15,13 @@ tabulate_md_strat <- function(risk_evaluation,
   pm <- function(x){ifelse(x>0, "+", "")}
 
   output <- risk_evaluation %>%
-    filter(model != 'rf') %>%
-    pivot_longer(cols = c(auc:GND_pvalue), names_to = 'metric') %>%
+    select(-bri) %>%
+    pivot_longer(cols = c(auc, ipa), names_to = 'metric') %>%
     split(f = list(.$outcome, .$metric)) %>%
     map(
       ~ {
 
-        mult_by <- if(.x$metric[1] == 'GND_chisq') 1 else 100
-
-        if(str_detect(.x$metric[1], '^nri'))
-          .x$value[.x$md_strat == 'meanmode_si'] <- 0
+        mult_by <- 100
 
         data_tbl <- .x %>%
           select(-outcome, -metric) %>%

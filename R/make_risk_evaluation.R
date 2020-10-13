@@ -3,7 +3,6 @@
 ##' .. content for \details{} ..
 ##'
 ##' @title
-##' @param mc_cv_results
 ##' @param im
 ##' @param resamples
 make_risk_evaluation <- function(mc_cv_results, im, resamples, times) {

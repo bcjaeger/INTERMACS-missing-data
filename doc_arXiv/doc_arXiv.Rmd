@@ -26,7 +26,6 @@ header-includes:
    - \newcommand{\ibstat}{\mathcal{\widehat{BS}}(\tau)}
 ---
 
-
 ```{r setup, include = FALSE}
 
 knitr::opts_chunk$set(echo = FALSE,
@@ -34,12 +33,44 @@ knitr::opts_chunk$set(echo = FALSE,
                       warning = FALSE,
                       dpi = 300)
 
-drake::loadd(im)
-drake::loadd(times)
-drake::loadd(tbl_characteristics)
-drake::loadd(tbl_md_strat_auc)
+gt_latex <- function(gt_object, caption = 'a table', label = NULL){
+  
+  header = paste0(
+    '\\begin{table} \n \\caption{',caption,'} \n'
+  )
+  
+  if(!is.null(label)){
+    header = paste0(header, '\\label{', label, '} \n')
+  }
+  
+  gt_object %>% 
+    as_latex() %>% 
+    as.character() %>% 
+    gsub("*", "",., fixed=T) %>% 
+    gsub("\\\\ \n\\small \\\\ \n", "", ., fixed=T) %>% 
+    gsub("\n\\large", "", ., fixed=T) %>% 
+    gsub("\\captionsetup[table]{labelformat=empty,skip=1pt}", "", ., fixed=T) %>% 
+    gsub("longtable", "table", ., fixed=T) %>% 
+    gsub('\\begin{table}','\\begin{table} \n\\begin{tabular}', ., fixed=T) %>% 
+    gsub('\\end{table}','\\end{tabular} \n \\end{table}', ., fixed=T) %>% 
+    gsub('\\begin{table}', header, ., fixed=T) %>% 
+    cat()
+  
+}
 
-library(table.glue)
+options(knitr.table.format = 'latex')
+
+source(file.path(here::here(), 'packages.R'))
+
+drake::loadd(im, 
+             times, 
+             md_method_labels,
+             md_type_labels,
+             model_labels,
+             outcome_labels,
+             additional_missing_labels,
+             tbl_characteristics,
+             tbl_impute_accuracy)
 
 ```
 
@@ -48,6 +79,7 @@ library(table.glue)
 \label{sec:introduction}
 
 \linenumbers
+\doublespacing
 
 <!-- Heart disease / heart failure -->
 
@@ -66,7 +98,7 @@ The primary aim of this article is to quantify how much the prognostic value of 
 
 <!-- Section summary -->
 
-Here we describe the INTERMACS Registry (Section \ref{subsec:intermacs}) and give a broad overview of general objectives for imputation of missing data in the context of statistical inference and supervised statistical learning (Section \ref{subsec:inference_and_learning}). We then describe thirteen strategies to handle missing values (Section \ref{subsec:imputation}) and three strategies to develop risk prediction models after missing data have been imputed (Section \ref{subsec:modeling}). Next, we describe how risk prediction models and by extension the imputation strategy applied before training the model were evaluated in Section \ref{subsec:evaluation}. Last, we outline an internal validation procedure that was applied to compare combinations of imputation and modeling strategies using hierarchical Bayesian models in Section \ref{subsec:internal}.
+Here we describe the INTERMACS Registry (Section \ref{subsec:intermacs}) and give a broad overview of general objectives for imputation of missing data in the context of statistical inference and supervised statistical learning (Section \ref{subsec:inference_and_learning}). We then describe thirteen strategies to handle missing values (Section \ref{subsec:imputation}) and three strategies to develop risk prediction models after missing data have been imputed (Section \ref{subsec:modeling}). Next, we describe how risk prediction models and by extension the imputation strategy applied before training the model were evaluated in Section \ref{subsec:evaluation}. We outline an internal validation procedure that was applied to compare combinations of imputation and modeling strategies using hierarchical Bayesian models in Section \ref{subsec:internal}. Last, details on computation and software packages used for the current analysis are described in Section \ref{subsec:computing}
 
 ## INTERMACS Registry
 \label{subsec:intermacs}
@@ -78,9 +110,12 @@ The current analysis was conducted using publicly available data provided by the
 ## Statistical Inference and Learning with Missing data 
 \label{subsec:inference_and_learning}
 
-\paragraph{Statistical Inference} Previous research has thoroughly investigated statistical inference in the context of missing data. In this setting, analysts often create multiple imputed datasets, replicate an analysis in each of them, and then pool their results to obtain valid test statistics for hypothesis testing \cite{rubin2004multiple}. Imputation strategies that create a single imputed dataset (\eg imputation to the mean) have been shown to increase type I errors (\ie rejecting a true null hypothesis) for inferential statistics by artificially reducing the variance of observed data and ignoring the uncertainty attributed to missing values \cite{van2018flexible}. When very few data are missing, analysts may apply listwise deletion, which removes any observation with at least one missing value and produces a dataset with fewer observations and no missing values.
+\paragraph{Statistical Inference} Previous research has thoroughly investigated statistical inference in the context of missing data. In this setting, analysts often create multiple imputed datasets, replicate an analysis in each of them, and then pool their results to obtain valid test statistics for hypothesis testing \cite{rubin2004multiple}. Imputation strategies that create a single imputed dataset (\eg imputation to the mean) have been shown to increase type I errors (\ie rejecting a true null hypothesis) for inferential statistics by artificially reducing the variance of observed data and ignoring the uncertainty attributed to missing values \cite{van2018flexible}. To ensure valid inference, imputation models should leverage outcome variables to predict missing predictors \cite{sterne2009multiple}. When very few data are missing, analysts may apply listwise deletion, \ie removing any observation with at least one missing value. However, listwise deletion can easily lead to biased inference \cite{van2020rebutting}.
 
-\paragraph{Statistical Learning} In the presence of missing data, the goal of supervised statistical learning is to develop a prediction function for an outcome variable that accurately generalizes to testing data, which may or may not contain missing values \cite{hastie2009elements}. Because testing data may contain missing values, listwise deletion is not a feasible strategy for statistical learning tasks. In contrast to statistical inference, strategies that create a single imputed dataset are often used for statistical learning \cite{kuhn2019feature}. Previous work has emphasized the importance of imputation strategies with greater accuracy, suggesting that more accurate imputation strategies lead to better performance of downstream models (\ie models fitted to the imputed data) \cite{jerez2010missing}. Others have shown that imputation to the mean, model-based imputation, and multiple imputation can provide Bayes-optimal prediction models provided certain assumptions are true, but these assumptions are difficult to validate in applied settings \cite{josse2019consistency}.
+\paragraph{Statistical Learning} In the presence of missing data, the goal of supervised statistical learning is to develop a prediction function for an outcome variable that accurately generalizes to testing data, which may or may not contain missing values \cite{hastie2009elements}. Because testing data may contain missing values, listwise deletion is not a feasible strategy for statistical learning tasks. In contrast to statistical inference, strategies that create a single imputed dataset are often used for statistical learning \cite{kuhn2019feature}. Previous work has emphasized the importance of imputation strategies with greater accuracy, suggesting that more accurate imputation strategies lead to better performance of downstream models (\ie models fitted to the imputed data) \cite{jerez2010missing}. Others have shown that imputation to the mean, model-based imputation, and multiple imputation can provide Bayes-optimal prediction models provided certain assumptions are true, but these assumptions are difficult to validate in applied settings \cite{josse2019consistency}. 
+
+<!-- Though the outcome variable should be used when imputing predictor values for statistical inference, using outcome variables for this purpose in supervised learning projects can lead to issues in clinical implementation. For instance, suppose we seek to predict an outcome $Y$ for a patient in the clinical setting. If the patient is missing information for a predictor $X$ and our only method to impute missing values of $X$ leverages the observed value of $Y$, how should we impute $X$? If we do not already know $Y$, which would seem likely for clinical application of a prediction model, then we cannot impute $X$. On the other hand, if we already know $Y$, then we obviously do not need to predict it. Due to these practical considerations and because INTERMACS is often leveraged to create prediction models for clinical practice \cite{thomas2014pre}, we did not leverage outcome variables (\ie time until transplant, death, or last contact) to impute missing values of predictors in the current analysis. -->
+
 
 ## Missing Data Strategies
 \label{subsec:imputation} 
@@ -97,24 +132,29 @@ The current analysis was conducted using publicly available data provided by the
 
 \paragraph{Hot Deck} Similar to KNN, hot deck imputation finds $k$ similar observations for each observation with a missing value in a given variable \cite{andridge2010hotdeck}. However, hot deck imputation uses a less computationally intensive approach, either identifying neighbors at random or using a subset of variables to find similar observations. When imputing a single dataset using hot deck imputation, we used a selection of 5 variables simultaneously to identify nearest neighbors. When imputing multiple datasets using hot deck imputation, we used a separate numeric variable for each dataset.
 
-\paragraph{Random forests} The random forest framework can be used for imputation as well as prediction. In the current analysis, we implement \texttt{miceRanger}, an R package similar to \texttt{missForest} that implements MICE with random forests by implementing PMM \cite{missForest}. \texttt{miceRanger} follows an iterative procedure where one random forest is fit to each variable in a dataset, separately, and then used to impute missing values in that variable. The procedure may repeat until estimated generalization error of the random forest collection stabilizes. When imputing a single dataset with \texttt{miceRanger}, we did not use PMM and instead imputed missing values with a prediction. When imputing multiple datasets, we implemented PMM with 10 donor candidates. 
+\paragraph{Random forests} Random forests grow an ensemble of de-correlated decision trees, where each tree is grown using a bootstrapped replicate of the original training data \cite{Breiman2001, hothorn2006survival, strobl2007bias, strobl2008conditional, ishwaran2008random, jaeger2019oblique}. A particularly helpful feature of random forests is their ability to estimate testing error by aggregating each decision tree's prediction error on data outside of their bootstrapped sample (\ie out-of-bag error). In the current analysis, we conduct MICE using one random forest to impute each variable, separately. For each imputed dataset, we allowed random forests to be re-fitted until out-of-bag error stabilized or a maximum number of iterations was completed. When imputing a single dataset, we used 250 trees per forest and a maximum of 10 iterations. When imputing multiple datasets, we used 50 trees per forest and applied PMM using the random forest's predicted values to impute missing data by sampling one value from a pool of 10 potential donors. 
 
-\paragraph{Missingness incorporated as an attribute (MIA)} MIA adds another observed category to nominal variables: "Missing". For numeric variables, MIA creates two columns: one where missing values are imputed with positive infinity and the other with negative infinity. When a decision tree uses a finite cut-point to split a given numeric variable, it will assess the cut-point using both the positive and negative infinite imputed columns, and utilize whichever column provides the best split of the current data. This procedure translates to sending all missing values to the left or to the right when forming two new nodes of the decision tree, using whichever direction results in a better split. In the current analysis, we used the MIA strategy only for ensembles of boosted decision trees, as it is a well known and frequently used strategy for these models \cite{twala2009empirical, ding2010investigation}. 
 
-\paragraph{Surrogate splitting} When decision trees search for a variable and cut-point to use for growing two new nodes in a decision tree, surrogate splitting will temporarily ignore missing values while searching for an initial split. Once an initial split is chosen, surrogate splitting searches for a split on another variable with observed values for the observations with missing values on the initial splitting variable and creates a surrogate split based on the new variable that is similar to the original split. In the current analysis, we used a maximum of three surrogate splits and sent any remaining missing values to the daughter node with higher sample size. Additionally, we only used surrogate splitting for conditional inference forests, as this strategy is well known and frequently used for these models.
+\paragraph{Missingness incorporated as an attribute (MIA)} MIA is a technique that uses missing status as a predictor rather than explicitly imputing missing values \cite{twala2009empirical, ding2010investigation}. MIA adds another category to nominal variables: "Missing". For numeric variables, MIA creates two columns: one where missing values are imputed with positive infinity and the other with negative infinity. Since PH models are not compatible with infinite values, we only use MIA in boosting models. When a decision tree uses a finite cut-point to split a given numeric variable, it will assess the cut-point using both the positive and negative infinite imputed columns, and utilize whichever column provides the best split of the current data. This procedure translates to sending all missing values to the left or to the right when forming two new nodes of the decision tree, using whichever direction results in a better split. 
 
-\paragraph{Assumptions} Each missing data strategy poses different assumptions regarding the data and the mechanisms that lead to missing values in the data. Imputation using Bayesian regression makes the same distributional assumptions as the Bayesian models that are applied. The \texttt{miceRanger} algorithm does not make any formal distributional assumptions, as random forests are non-parametric and can thus handle skewed and multi-modal data as well as categorical data that are ordinal or non-ordinal. Hot deck and KNN imputation also do not make distributional assumptions, but implicitly assume that a missing value for a given observation can be approximated by aggregating observed values from the $k$ most similar observations. PMM makes a similar implicit assumption, but is slightly more robust to skewed or multi-model data because imputed values are sampled directly from observed ones. MIA operates based on an implicit assumption that missingness itself is informative and surrogate splitting presumes that variables with missing values are related to other observed variables used by the decision tree. It is difficult to validate these assumptions in applied settings and also likely that downstream models will perform poorly if an imputation technique's assumptions are invalid.
+<!-- \paragraph{Surrogate splitting} When decision trees search for a variable and cut-point to use for growing two new nodes in a decision tree, surrogate splitting will temporarily ignore missing values while searching for an initial split. Once an initial split is chosen, surrogate splitting searches for a split on another variable with observed values for the observations with missing values on the initial splitting variable and creates a surrogate split based on the new variable that is similar to the original split. In the current analysis, we used a maximum of three surrogate splits and sent any remaining missing values to the daughter node with higher sample size. Additionally, we only used surrogate splitting for conditional inference forests, as this strategy is well known and frequently used for these models. -->
+
+\paragraph{Assumptions} Each missing data strategy poses different assumptions regarding the data and the mechanisms that lead to missing values in the data. Imputation using Bayesian regression makes the same distributional assumptions as the Bayesian models that are applied. The \texttt{miceRanger} algorithm does not make any formal distributional assumptions, as random forests are non-parametric and can thus handle skewed and multi-modal data as well as categorical data that are ordinal or non-ordinal. Hot deck and KNN imputation also do not make distributional assumptions, but implicitly assume that a missing value for a given observation can be approximated by aggregating observed values from the $k$ most similar observations. PMM makes a similar implicit assumption, but is slightly more robust to skewed or multi-modal data because imputed values are sampled directly from observed ones. MIA operates based on an implicit assumption that missingness itself is informative. It is difficult to validate these assumptions in applied settings and also likely that downstream models will perform poorly if an imputation technique's assumptions are invalid.
+
+## Evaluating imputation accuracy
+\label{subsec:imputation_accuracy}
+
+Imputation accuracy was computed for each numerical and nominal variable, separately. Numeric variable imputation accuracy was measured using a re-scaled mean-squared error: $$1 - \frac{\textrm{MSE}(\textrm{current imputation method})}{\textrm{MSE}(\textrm{imputation to the mean})}.$$ This score is greater than 0 if $\textrm{MSE}(\textrm{current imputation method})$ is smaller than $\textrm{MSE}(\textrm{imputation to the mean})$, equal to 0 if the two MSEs are equal, and less than 0 if $\textrm{MSE}(\textrm{current imputation method})$ is greater than $\textrm{MSE}(\textrm{imputation to the mean})$. Nominal variable imputation accuracy was measured using a re-scaled classification accuracy: $$1 - \frac{\textrm{Classification error}(\textrm{current imputation method})}{\textrm{Classification error}(\textrm{imputation to the mean})}.$$ This score is greater than 0 if the classification error of the current imputation method is less than that of imputation to the mean, equal to 0 if the two classification errors are equal, and less than 0 of the classification error of the current imputation method is worse than imputation to the mean. These numeric and nominal scores are analogous to the more well known $R^2$ and Kappa statistics, respectively, but are modified slightly in the current analysis so that imputation to the mean will always have a score of 0. This modification makes it easier to compare the accuracy of each imputation strategy directly with imputation to the mean.
 
 ## Risk Prediction Models
 \label{subsec:modeling} 
 
-We applied three modeling strategies after imputing missing values: 
+We applied two modeling strategies after imputing missing values: 
 
 - Cox proportional hazards (PH) model with forward stepwise variable selection
-- gradient boosted decision trees (hereafter referred to as 'boosting')
-- Conditional inference forest (CIF, an extension of random forests) 
+- Gradient boosted decision trees (hereafter referred to as 'boosting')
 
-A thorough description of stepwise variable selection, boosting, and random forests can be found in Sections 6.1.2, 8.2.2, and 8.2.3, respectively, of \emph{Introduction to Statistical Learning} \cite{james2013introduction}. Sir David Cox's PH model is one of the most frequently applied methods for the analysis of right-censored time-to-event outcomes \cite{kleinbaum2010survival}. According to the PH assumption, the effect of a unit increase in a predictor is multiplicative with respect to a baseline hazard function. Boosting grows a sequence of decision trees, each using information from the previous trees in an attempt to correct their errors \cite{friedman2001greedy, chen2016xgboost}. In contrast, random forests grow an ensemble of de-correlated decision trees, where each tree is grown using a bootstrapped replicate of the original training data \cite{Breiman2001}. The CIF obtains unbiased recursive partitioning by applying early-stopping and permutation tests and is one of several methods that extends random forests to right-censored time-to-event data \cite{hothorn2006survival, strobl2007bias, strobl2008conditional, ishwaran2008random, jaeger2019oblique}.
+A thorough description of stepwise variable selection and boosting can be found in Sections 6.1.2 and 8.2.2, respectively, of \emph{Introduction to Statistical Learning} \cite{james2013introduction}. Sir David Cox's PH model is one of the most frequently applied methods for the analysis of right-censored time-to-event outcomes \cite{kleinbaum2010survival}. According to the PH assumption, the effect of a unit increase in a predictor is multiplicative with respect to a baseline hazard function. Boosting grows a sequence of decision trees, each using information from the previous trees in an attempt to correct their errors \cite{friedman2001greedy, chen2016xgboost}. 
 
 ## Evaluation of Predictions 
 \label{subsec:evaluation} 
@@ -129,10 +169,134 @@ The Brier score is dependent on the rate of observed events, which can make it a
 ## Internal Validation via Monte-Carlo Cross-Validation (MCCV)
 \label{subsec:internal}
 
-To assess the prognostic value of each missing data strategy, we internally validated a total of FILL IN modeling algorithm based on combinations of imputation strategies and modeling strategies described in Sections \ref{subsec:imputation} and \ref{subsec:modeling}. For convenience, we use the term `modeling algorithm' to denote the combination of a missing data strategy and a modeling strategy (\eg imputation using mean/mode values followed by fitting the PH model with stepwise variable selection) \cite{kuhn2013applied}. We conducted internal validation using 150 replicates of Monte-Carlo cross validation (MCCV), a resampling technique for internal validation (Figure \ref{fig:monte_carlo_cv}).
+To assess the prognostic value of each missing data strategy, we internally validated a total of FILL IN modeling algorithm based on combinations of imputation strategies and modeling strategies described in Sections \ref{subsec:imputation} and \ref{subsec:modeling}. For convenience, we use the term `modeling algorithm' to denote the combination of a missing data strategy and a modeling strategy (\eg imputation using mean/mode values followed by fitting the PH model with stepwise variable selection) \cite{kuhn2013applied}. We conducted internal validation using 200 replicates of Monte-Carlo cross validation (MCCV), a resampling technique for internal validation (Figure FILL IN).
 
 \paragraph{Steps taken in each MCCV replicate} In each replicate, 50\% of the available data were used for model training and testing. Imputation was conducted in the training and testing sets, separately, for each imputation strategy. Some imputation strategies (\eg KNN and random forests) used only the training data to generate imputed values, whereas others (\eg Bayesian regression, PMM, and hot deck)
 
 After imputation, each modeling algorithm (\ie stepwise PH models, GBDTs, and the cIF) was applied, separately, to develop a RPE for death or transplant that incorporated up to 50 predictor variables from the entire collection of covariates available.
 
+## Statistical analysis
+
+Participant characteristics were tabulated for the overall population and stratified by event status. Continuous and categorical variables were summarized as mean (standard deviation) and percent, respectively. Imputation accuracy was aggregated for all numeric and nominal variables to create two overall scores for each imputed dataset, and the distribution of these scores was tabulated for each imputation strategy. 
+
+
+
+## Computational details
+\label{subsec:computing}
+
+implement \texttt{miceRanger}, an R package similar to \texttt{missForest} that implements MICE with random forests by implementing PMM \cite{missForest}. \texttt{miceRanger} follows an iterative procedure where one random forest is fit to each variable in a dataset, separately, and then used to impute missing values in that variable. The procedure may repeat until estimated generalization error of the random forest collection stabilizes. 
+
+# Results
+
+```{r inline_characteristics}
+
+trunc_events <- im %>% 
+  summarize(
+    n_dead = sum(pt_outcome_dead == 1 & months_post_implant < times),
+    n_txpl = sum(pt_outcome_txpl == 1 & months_post_implant < times),
+    n_cens = sum(pt_outcome_cess == 0 & 
+                 pt_outcome_dead == 0 &
+                 pt_outcome_txpl ==0 & 
+                 months_post_implant < times),
+    p_dead = 100 * mean(pt_outcome_dead == 1 & months_post_implant < times),
+    p_txpl = 100 * mean(pt_outcome_txpl == 1 & months_post_implant < times),
+    p_cens = 100 * mean(pt_outcome_cess == 0 & 
+                 pt_outcome_dead == 0 &
+                 pt_outcome_txpl ==0 & 
+                 months_post_implant < times)
+    
+  ) %>% 
+  transmute(
+    dead = table_glue("{n_dead} ({p_dead}%)"),
+    txpl = table_glue("{n_txpl} ({p_txpl}%)"),
+    cens = table_glue("{n_cens} ({p_cens}%)")
+  ) %>% 
+  as.list() 
+
+age_overall <- inline_text(tbl_characteristics, 
+                           variable = 'demo_age', 
+                           column = 'stat_0')
+
+male_overall <- inline_text(tbl_characteristics, 
+                            variable = 'demo_gender',
+                            level = 'Male',
+                            column = 'stat_0')
+
+white_overall <- inline_text(tbl_characteristics, 
+                             variable = 'demo_race',
+                             level = 'White',
+                             column = 'stat_0')
+
+
+
+```
+
+
+\paragraph{Patient Characteristics} During the first `r times` months after receiving MCS, the number (% of overall population) of deaths, transplants, and loss-to-follow-up events was `r trunc_events$dead`, `r trunc_events$txpl`, and `r trunc_events$cens`, respectively. The mean (standard deviation) age of patients was `r age_overall` years, `r white_overall`% of patients identified as white and `r male_overall`% were male (Table \ref{tbl_characteristics}). 
+
+\paragraph{Imputation accuracy}
+
+
+<!-- Table : characteristics -->
+\clearpage
+\begin{table}
+\caption{Participant characteristics stratified by event status.}
+\label{tbl_characteristics}
+
+```{r tbl_characteristics, results = 'asis'}
+
+as_kable_extra(
+  tbl_characteristics,
+  booktabs = TRUE, 
+  align = 'lccccc'
+) %>% 
+  footnote(general = 'Table values are mean (standard deviation) or %')
+
+```
+
+\end{table}
+
+<!-- Table: imputation accuracy -->
+
+\clearpage
+
+```{r tbl_impute_accuracy, results = 'asis'}
+
+tbl_impute_accuracy %>% 
+  mutate(
+    md_method = factor(
+      md_method,
+      levels = names(md_method_labels),
+      labels = md_method_labels),
+    additional_missing_pct = factor(
+      additional_missing_pct,
+      levels = additional_missing_labels[-1],
+      labels = names(additional_missing_labels)[-1]
+    )
+  ) %>%
+  arrange(md_method, additional_missing_pct) %>% 
+  gt(rowname_col = 'md_method', 
+     groupname_col = 'additional_missing_pct') %>% 
+  fmt_missing(columns = everything()) %>% 
+  cols_align('center') %>% 
+  tab_spanner(
+    label = 'Nominal variables',
+    columns = c('nominal_si', 'nominal_mi')
+  ) %>% 
+  tab_spanner(
+    label = 'Numeric variables',
+    columns = c('numeric_si', 'numeric_mi')
+  ) %>% 
+  cols_label(
+    numeric_si = 'Single imputation', 
+    nominal_si = 'Single imputation', 
+    numeric_mi = 'Multiple imputation',
+    nominal_mi = 'Multiple imputation'
+  ) %>%
+  gt_latex(
+    caption = 'Accuracy of strategies to impute artificial missing data', 
+    label = 'tbl_impute_accuracy'
+  )
+
+```
 

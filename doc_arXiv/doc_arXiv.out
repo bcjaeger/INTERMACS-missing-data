@@ -1,0 +1,12 @@
+\BOOKMARK [1][-]{section.1}{Introduction}{}% 1
+\BOOKMARK [1][-]{section.2}{Methods}{}% 2
+\BOOKMARK [2][-]{subsection.2.1}{INTERMACS Registry}{section.2}% 3
+\BOOKMARK [2][-]{subsection.2.2}{Statistical Inference and Learning with Missing data}{section.2}% 4
+\BOOKMARK [2][-]{subsection.2.3}{Missing Data Strategies}{section.2}% 5
+\BOOKMARK [2][-]{subsection.2.4}{Evaluating imputation accuracy}{section.2}% 6
+\BOOKMARK [2][-]{subsection.2.5}{Risk Prediction Models}{section.2}% 7
+\BOOKMARK [2][-]{subsection.2.6}{Evaluation of Predictions}{section.2}% 8
+\BOOKMARK [2][-]{subsection.2.7}{Internal Validation via Monte-Carlo Cross-Validation \(MCCV\)}{section.2}% 9
+\BOOKMARK [2][-]{subsection.2.8}{Statistical analysis}{section.2}% 10
+\BOOKMARK [2][-]{subsection.2.9}{Computational details}{section.2}% 11
+\BOOKMARK [1][-]{section.3}{Results}{}% 12

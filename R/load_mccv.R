@@ -10,7 +10,7 @@
 
 load_mccv <- function(output_path = "slurm/results",
                       output_pattern = '^output',
-                      nruns = 6000) {
+                      nruns = 12000) {
 
   files <- list.files(path = output_path,
                       pattern = output_pattern,
