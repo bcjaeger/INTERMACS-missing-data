@@ -63,37 +63,37 @@ the_plan <- drake_plan(
 
   risk_evaluation = make_risk_evaluation(mc_cv_results, im, resamples, times),
 
-  bayes_mccv_fits = make_bayes_mccv_fit(risk_evaluation),
-
+  # bayes_mccv_fits = make_bayes_mccv_fit(risk_evaluation),
+  #
   fig_risk_evaluation = visualize_risk_evaluation(risk_evaluation,
                                                   md_method_labels,
                                                   md_type_labels,
                                                   model_labels,
                                                   outcome_labels,
                                                   additional_missing_labels,
-                                                  times),
-
-  fig_md_strat_infer = visualize_md_strat_inference(bayes_mccv_fits,
-                                                    md_type_labels,
-                                                    md_method_labels,
-                                                    outcome_labels,
-                                                    rspec),
-
-
-  tbl_md_strat = tabulate_md_strat(risk_evaluation,
-                                   md_method_labels,
-                                   md_type_labels,
-                                   model_labels,
-                                   outcome_labels,
-                                   additional_missing_labels,
-                                   rspec),
-
-  arxiv_preprint = target(
-    command = {
-      rmarkdown::render(knitr_in("doc_arxiv/doc_arxiv.Rmd"))
-      file_out("doc_arxiv/doc_arxiv.pdf")
-    }
-  )
+                                                  times)
+  #
+  # fig_md_strat_infer = visualize_md_strat_inference(bayes_mccv_fits,
+  #                                                   md_type_labels,
+  #                                                   md_method_labels,
+  #                                                   outcome_labels,
+  #                                                   rspec),
+  #
+  #
+  # tbl_md_strat = tabulate_md_strat(risk_evaluation,
+  #                                  md_method_labels,
+  #                                  md_type_labels,
+  #                                  model_labels,
+  #                                  outcome_labels,
+  #                                  additional_missing_labels,
+  #                                  rspec),
+  #
+  # arxiv_preprint = target(
+  #   command = {
+  #     rmarkdown::render(knitr_in("doc_arxiv/doc_arxiv.Rmd"))
+  #     file_out("doc_arxiv/doc_arxiv.pdf")
+  #   }
+  # )
 
 
 )

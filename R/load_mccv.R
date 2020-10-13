@@ -8,7 +8,7 @@
 ##'
 ##' @title
 
-load_mccv <- function(output_path = "slurm/results",
+load_mccv <- function(output_path = "slurm/results_old",
                       output_pattern = '^output',
                       nruns = 12000) {
 
@@ -22,8 +22,8 @@ load_mccv <- function(output_path = "slurm/results",
     map(paste, collapse = '') %>%
     map_dbl(as.numeric)
 
-  message("Unsuccessful slurm runs:",
-          paste(setdiff(0:(nruns-1), file_nums), collapse = ', '))
+  # message("Unsuccessful slurm runs:",
+  #         paste(setdiff(0:(nruns-1), file_nums), collapse = ', '))
 
   map_dfr(.x = files, .f = ~ read_rds(.x)[[1]])
 

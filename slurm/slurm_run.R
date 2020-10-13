@@ -18,11 +18,11 @@ R.utils::sourceDirectory("../R")
     rename(time = months_post_implant,
            status = paste0('pt_outcome_', outcome)) %>%
     select(-starts_with('pt_outcome_')) %>%
-  # if you want to truncate event times
-  mutate(
-    status = if_else(time > maxtime & status == 1, 0, status),
-    time = pmin(time, maxtime)
-  )
+    # if you want to truncate event times
+    mutate(
+      status = if_else(time > maxtime & status == 1, 0, status),
+      time = pmin(time, maxtime)
+    )
 
   testing_index <- read_rds('../data/resamples.rds')[[iteration]]
 
@@ -339,28 +339,68 @@ R.utils::sourceDirectory("../R")
   }
   if('nbrs_mi' %in% md_strat){
 
-    nbrs_mi <-
-      brew_nbrs(im_train_pre_impute, outcome = c(time, status)) %>%
-      spice(k_neighbors = rep(10, 5), aggregate = FALSE) %>%
-      verbose_on(level = 2) %>%
-      mash() %>%
-      stir(timer = TRUE) %>%
-      ferment(data_new = im_test_pre_impute) %>%
-      bottle() %>%
-      tidy_nbrs()
+    nbrs_mi_trn <- impute_nbrs(
+      data_ref = im_train_pre_impute,
+      cols = c(everything(), -time, -status),
+      k_neighbors = round(seq(from = 2, to = 20, length.out = n_impute_mi)),
+      aggregate = TRUE,
+      verbose = TRUE
+    )
+
+    nbrs_mi_tst <- impute_nbrs(
+      data_ref = im_test_pre_impute,
+      cols = c(everything(), -time, -status),
+      k_neighbors = round(seq(from = 2, to = 20, length.out = n_impute_mi)),
+      aggregate = TRUE,
+      verbose = TRUE
+    )
+
+    nbrs_mi <- nbrs_mi_trn %>%
+      as_tibble() %>%
+      transmute(
+        impute,
+        training = map(
+          .x = imputed_values,
+          .f = ~ipa:::fill_na(im_train_pre_impute, vals = .x)
+        ),
+        testing = map(
+          .x = nbrs_mi_tst$imputed_values,
+          .f = ~ipa:::fill_na(im_test_pre_impute, vals = .x)
+        )
+      )
 
   }
   if('nbrs_si' %in% md_strat){
 
-    nbrs_si <-
-      brew_nbrs(im_train_pre_impute, outcome = c(time, status)) %>%
-      spice(k_neighbors = 10, aggregate = TRUE) %>%
-      verbose_on(level = 2) %>%
-      mash() %>%
-      stir(timer = TRUE) %>%
-      ferment(data_new = im_test_pre_impute) %>%
-      bottle() %>%
-      tidy_nbrs()
+    nbrs_si_trn <- impute_nbrs(
+      data_ref = im_train_pre_impute,
+      cols = c(everything(), -time, -status),
+      k_neighbors = 10,
+      aggregate = TRUE,
+      verbose = TRUE
+    )
+
+    nbrs_si_tst <- impute_nbrs(
+      data_ref = im_test_pre_impute,
+      cols = c(everything(), -time, -status),
+      k_neighbors = 10,
+      aggregate = TRUE,
+      verbose = TRUE
+    )
+
+    nbrs_si <- nbrs_si_trn %>%
+      as_tibble() %>%
+      transmute(
+        impute,
+        training = map(
+          .x = imputed_values,
+          .f = ~ipa:::fill_na(im_train_pre_impute, vals = .x)
+        ),
+        testing = map(
+          .x = nbrs_si_tst$imputed_values,
+          .f = ~ipa:::fill_na(im_test_pre_impute, vals = .x)
+        )
+      )
 
   }
   if('ranger_si' %in% md_strat){
@@ -368,17 +408,32 @@ R.utils::sourceDirectory("../R")
     ranger_si_train <- miceRanger(
       data = im_train_pre_impute,
       m = 1,
-      maxiter = 10,
+      maxiter = 5,
       vars = miceranger_vars,
-      returnModels = TRUE,
+      returnModels = FALSE,
       verbose = TRUE,
-      num.trees = 250
-    )
+      num.trees = 100
+    ) %>%
+      completeData() %>%
+      set_names(1:length(.)) %>%
+      enframe(name = 'impute', value = 'training') %>%
+      mutate(training = map(training, as_tibble))
 
-    ranger_si_test <- impute(data = im_test_pre_impute,
-                             miceObj = ranger_si_train)
+    ranger_si_test <- miceRanger(
+      data = im_test_pre_impute,
+      m = 1,
+      maxiter = 5,
+      vars = miceranger_vars,
+      returnModels = FALSE,
+      verbose = TRUE,
+      num.trees = 100
+    ) %>%
+      completeData() %>%
+      set_names(1:length(.)) %>%
+      enframe(name = 'impute', value = 'testing') %>%
+      mutate(testing = map(testing, as_tibble))
 
-    ranger_si = tidy_ranger(ranger_si_train, ranger_si_test)
+    ranger_si = left_join(ranger_si_train, ranger_si_test)
 
     rm(ranger_si_train, ranger_si_test)
 
@@ -391,15 +446,31 @@ R.utils::sourceDirectory("../R")
       vars = miceranger_vars,
       maxiter = 5,
       meanMatchCandidates = 10,
-      returnModels = TRUE,
+      returnModels = FALSE,
       verbose = TRUE,
-      num.trees = round(250 / n_impute_mi)
-    )
+      num.trees = round(100 / n_impute_mi)
+    ) %>%
+      completeData() %>%
+      set_names(1:length(.)) %>%
+      enframe(name = 'impute', value = 'training') %>%
+      mutate(training = map(training, as_tibble))
 
-    ranger_mi_test <- impute(data = im_test_pre_impute,
-                             miceObj = ranger_mi_train)
+    ranger_mi_test <- miceRanger(
+      data = im_test_pre_impute,
+      m = n_impute_mi,
+      vars = miceranger_vars,
+      maxiter = 5,
+      meanMatchCandidates = 10,
+      returnModels = FALSE,
+      verbose = TRUE,
+      num.trees = round(100 / n_impute_mi)
+    ) %>%
+      completeData() %>%
+      set_names(1:length(.)) %>%
+      enframe(name = 'impute', value = 'testing') %>%
+      mutate(testing = map(testing, as_tibble))
 
-    ranger_mi <- tidy_ranger(ranger_mi_train, ranger_mi_test)
+    ranger_mi <- left_join(ranger_mi_train, ranger_mi_test)
 
     rm(ranger_mi_train, ranger_mi_test)
 
