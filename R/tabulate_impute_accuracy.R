@@ -33,11 +33,13 @@ tabulate_impute_accuracy <- function(mc_cv_results) {
     )
 
   data_tbl %>%
-    transmute(
-      md_strat,
-      additional_missing_pct,
-      nominal = table_glue("{nominal_est} ({nominal_lwr}, {nominal_upr})"),
-      numeric = table_glue("{numeric_est} ({numeric_lwr}, {numeric_upr})")
+    mutate(
+      nominal = table_glue(
+        "{pm(nominal_est)}{nominal_est} ({nominal_lwr}, {nominal_upr})"
+      ),
+      numeric = table_glue(
+        "{pm(numeric_est)}{numeric_est} ({numeric_lwr}, {numeric_upr})"
+      )
     ) %>%
     mutate(
       across(
@@ -48,13 +50,15 @@ tabulate_impute_accuracy <- function(mc_cv_results) {
       )
     ) %>%
     separate(md_strat, into = c('md_method', 'md_type')) %>%
-    pivot_wider(values_from = c(nominal, numeric), names_from = md_type) %>%
+    pivot_wider(values_from = matches("^nominal|^numeric"),
+                names_from = md_type) %>%
     select(md_method,
            additional_missing_pct,
            nominal_si,
            nominal_mi,
            numeric_si,
-           numeric_mi)
+           numeric_mi,
+           everything())
 
 
 }

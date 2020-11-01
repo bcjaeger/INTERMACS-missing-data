@@ -12,18 +12,12 @@ tabulate_md_strat <- function(risk_evaluation,
                               additional_missing_labels,
                               rspec) {
 
-  pm <- function(x){ifelse(x>0, "+", "")}
-
   output <- risk_evaluation %>%
     select(-bri) %>%
-    pivot_longer(cols = c(auc, ipa), names_to = 'metric') %>%
+    pivot_longer(cols = c(auc, ipa, cal_error), names_to = 'metric') %>%
     split(f = list(.$outcome, .$metric)) %>%
     map(
-      ~ {
-
-        mult_by <- 100
-
-        data_tbl <- .x %>%
+      ~ .x %>%
           select(-outcome, -metric) %>%
           pivot_wider(values_from = value, names_from = md_strat) %>%
           mutate(
@@ -47,69 +41,11 @@ tabulate_md_strat <- function(risk_evaluation,
           pivot_longer(cols = -(iteration:model), names_to = 'md_strat') %>%
           group_by(model, md_strat, additional_missing_pct) %>%
           summarize(
-            est = mult_by * median(value, na.rm = TRUE),
-            lwr = mult_by * quantile(value, probs = 0.025, na.rm = TRUE),
-            upr = mult_by * quantile(value, probs = 0.975, na.rm = TRUE)
+            est = 100 * median(value, na.rm = TRUE),
+            lwr = 100 * quantile(value, probs = 0.25, na.rm = TRUE),
+            upr = 100 * quantile(value, probs = 0.75, na.rm = TRUE)
           ) %>%
-          ungroup() %>%
-          transmute(
-            model = recode(model, !!!model_labels),
-            additional_missing_pct = factor(
-              additional_missing_pct,
-              levels = additional_missing_labels,
-              labels = names(additional_missing_labels)
-            ),
-            md_strat = str_replace(md_strat, 'mia', 'mia_si'),
-            table_val = if_else(
-              md_strat == 'meanmode_si',
-              true = table_glue("{est} ({lwr}, {upr})", rspec=rspec),
-              false = table_glue("{pm(est)}{est} ({lwr}, {upr})", rspec=rspec)
-            )
-          ) %>%
-          separate(md_strat, into = c('md_method', 'md_type')) %>%
-          pivot_wider(names_from = md_type, values_from = table_val) %>%
-          mutate(
-            md_method = factor(md_method,
-                               levels = names(md_method_labels),
-                               labels = md_method_labels)
-          ) %>%
-          arrange(md_method) %>%
-          filter(!(md_method == 'Missingness as an attribute' &
-                     model == 'Proportional hazards')) %>%
-          rename(MI = mi, SI = si) %>%
-          pivot_wider(names_from = model, values_from = c(SI, MI)) %>%
-          select(
-            additional_missing_pct,
-            md_method,
-            `SI_Proportional hazards`,
-            `MI_Proportional hazards`,
-            `SI_Gradient boosted decision trees`,
-            `MI_Gradient boosted decision trees`
-          )
-
-        cols <- str_detect(names(data_tbl), pattern = 'MI$|SI$')
-        cols <- names(data_tbl)[cols]
-
-        gt(data_tbl,
-           groupname_col = 'additional_missing_pct',
-           rowname_col = 'md_method') %>%
-          tab_stubhead(label = 'Imputation method') %>%
-          fmt_missing(columns = everything(),
-                      missing_text = '--') %>%
-          tab_spanner(label = 'Proportional hazards',
-                      columns = c("SI_Proportional hazards",
-                                  "MI_Proportional hazards")) %>%
-          tab_spanner(label = "Gradient boosted decision trees",
-                      columns = c("SI_Gradient boosted decision trees",
-                                  "MI_Gradient boosted decision trees")) %>%
-          cols_label(
-            "MI_Proportional hazards" = 'Multiple Imputation',
-            "SI_Proportional hazards" = 'Single Imputation',
-            "MI_Gradient boosted decision trees" = 'Multiple Imputation',
-            "SI_Gradient boosted decision trees" = 'Single Imputation',
-          ) %>%
-          cols_align('center')
-      }
+          ungroup()
     )
 
 

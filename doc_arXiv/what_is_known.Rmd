@@ -1,0 +1,21 @@
+---
+date: "`r Sys.Date()`"
+author: "Your Name"
+title: "officedown template"
+output: 
+  officedown::rdocx_document:
+    mapstyles:
+      Normal: ['First Paragraph']
+---
+
+<!-- As a benefit to our readers, please provide concise and insightful sentences that identify "What is Known" about your topic and "What the Study Adds" to the literature. These sentences should be limited to 5 inclusively. This should NOT be a summary, but referenced in a bulleted format first listing the "What is Known" followed by the "What the Study Adds". Please do not include references. Please upload a Word document version of your points as a supplemental file; it should not be included in the main manuscript document.  -->
+
+**What is Known**
+
+- add a sentence
+
+**What the Study Adds**
+
+- add a sentence
+
+- add a sentence

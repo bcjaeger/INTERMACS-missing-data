@@ -54,6 +54,7 @@ make_risk_evaluation <- function(mc_cv_results, im, resamples, times) {
 
   }
 
-  bind_rows(risk_eval, .id = 'iteration')
+  bind_rows(risk_eval, .id = 'iteration') %>%
+    mutate(cal_error = cal_error * 100)
 
 }

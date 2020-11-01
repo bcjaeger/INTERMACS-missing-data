@@ -8,7 +8,7 @@
 ##'
 ##' @title
 
-load_mccv <- function(output_path = "slurm/results_old",
+load_mccv <- function(output_path = "slurm/results",
                       output_pattern = '^output',
                       nruns = 12000) {
 

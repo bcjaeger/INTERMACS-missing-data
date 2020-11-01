@@ -12,14 +12,14 @@ visualize_risk_evaluation <- function(risk_evaluation,
                                       additional_missing_labels,
                                       times) {
 
-
   rspec <- round_spec() %>%
     round_using_decimal(digits = 2) %>%
     round_half_even()
 
   ggdata <- risk_evaluation %>%
+    mutate(cal_error = cal_error * 1000) %>%
     group_by(outcome, md_strat, model, additional_missing_pct) %>%
-    summarize(across(c(auc,ipa), mean), .groups = 'drop') %>%
+    summarize(across(c(auc, ipa, cal_error), mean), .groups = 'drop') %>%
     mutate(md_strat = if_else(md_strat == 'mia',
                               true = 'mia_si',
                               false = md_strat)) %>%
@@ -27,12 +27,12 @@ visualize_risk_evaluation <- function(risk_evaluation,
     group_by(outcome, md_method, model) %>%
     mutate(
       across(
-        .cols = c(auc, ipa),
+        .cols = c(auc, ipa, cal_error),
         .fns  = list(pct_diff = ~ table_value(100*(max(.x)-min(.x))/min(.x),
                                               rspec = rspec))
       ),
       across(
-        .cols = c(auc, ipa),
+        .cols = c(auc, ipa, cal_error),
         .fns = list(lbl = ~table_value(100 * .x, rspec = rspec))
       )
     ) %>%
@@ -54,7 +54,7 @@ visualize_risk_evaluation <- function(risk_evaluation,
 
   lower_values <- ggdata %>%
     group_by(outcome, md_method, model, additional_missing_pct) %>%
-    select(-ipa) %>%
+    select(-ipa, -cal_error) %>%
     filter(auc == min(auc)) %>%
     ungroup() %>%
     filter(!(md_method %in% md_methods_upper_only)) %>%
@@ -62,7 +62,7 @@ visualize_risk_evaluation <- function(risk_evaluation,
 
   upper_values <- ggdata %>%
     group_by(outcome, md_method, model, additional_missing_pct) %>%
-    select(-ipa) %>%
+    select(-ipa, -cal_error) %>%
     filter(auc == max(auc)) %>%
     group_by(model) %>%
     nest(upr = -c(model, outcome))
@@ -124,7 +124,7 @@ visualize_risk_evaluation <- function(risk_evaluation,
 
   lower_values <- ggdata %>%
     group_by(outcome, md_method, model, additional_missing_pct) %>%
-    select(-auc) %>%
+    select(-auc, -cal_error) %>%
     filter(ipa == min(ipa)) %>%
     ungroup() %>%
     filter(!(md_method %in% md_methods_upper_only)) %>%
@@ -132,7 +132,7 @@ visualize_risk_evaluation <- function(risk_evaluation,
 
   upper_values <- ggdata %>%
     group_by(outcome, md_method, model, additional_missing_pct) %>%
-    select(-auc) %>%
+    select(-auc, -cal_error) %>%
     filter(ipa == max(ipa)) %>%
     group_by(model) %>%
     nest(upr = -c(model, outcome))
@@ -190,7 +190,80 @@ visualize_risk_evaluation <- function(risk_evaluation,
       )
     )
 
-  bind_rows(auc = output_auc, ipa = output_ipa, .id = 'metric')
+  # calibration error plots ----
+
+  lower_values <- ggdata %>%
+    group_by(outcome, md_method, model, additional_missing_pct) %>%
+    select(-auc, -ipa) %>%
+    filter(cal_error == min(cal_error)) %>%
+    ungroup() %>%
+    filter(!(md_method %in% md_methods_upper_only)) %>%
+    nest(lwr = -c(model, outcome))
+
+  upper_values <- ggdata %>%
+    group_by(outcome, md_method, model, additional_missing_pct) %>%
+    select(-auc, -ipa) %>%
+    filter(cal_error == max(cal_error)) %>%
+    group_by(model) %>%
+    nest(upr = -c(model, outcome))
+
+  output_cal_error <- ggdata %>%
+    group_by(model, outcome) %>%
+    nest() %>%
+    left_join(lower_values) %>%
+    left_join(upper_values) %>%
+    mutate(
+      data = map(
+        .x = data,
+        .f = ~ .x %>%
+          mutate(md_method = fct_reorder(md_method, .x = cal_error, .fun = max))
+      ),
+      plot = pmap(
+        .l = list(data, lwr, upr),
+        .f = ~ {
+          ggplot(..1) +
+            aes(x = cal_error,
+                y = md_method,
+                fill = md_type) +
+            geom_line(aes(group = md_method), color = 'grey') +
+            geom_point(size = 3, shape = 21) +
+            geom_text(
+              data = ..2,
+              aes(label = cal_error_lbl),
+              nudge_x = -0.003
+            ) +
+            geom_text(
+              data = ..3,
+              aes(label = cal_error_lbl),
+              nudge_x = +0.003
+            ) +
+            labs(x = glue('Calibration error,',
+                          '{times} months post transplant',
+                          .sep = ' '),
+                 y = '',
+                 fill = '') +
+            facet_wrap(~additional_missing_pct) +
+            theme_bw() +
+            scale_x_continuous(
+              limits = c(
+                min(..1$cal_error -0.01),
+                max(..1$cal_error +0.01)
+              )
+            ) +
+            scale_fill_manual(values = c("orange", "purple")) +
+            theme(legend.position = 'top',
+                  text = element_text(size = 15),
+                  panel.grid.major.x = element_blank(),
+                  panel.grid.minor.x = element_blank(),
+                  panel.grid.major.y = element_line(linetype = 2))
+        }
+      )
+    )
+
+  bind_rows(auc = output_auc,
+            ipa = output_ipa,
+            cal_error = output_cal_error,
+            .id = 'metric')
 
 
 }
