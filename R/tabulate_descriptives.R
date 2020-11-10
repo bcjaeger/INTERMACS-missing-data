@@ -46,7 +46,7 @@ tabulate_descriptives <- function(im) {
     ) %>%
     select(
       status,
-      months_post_implant,
+      #months_post_implant,
       demo_age,
       demo_gender,
       demo_race,

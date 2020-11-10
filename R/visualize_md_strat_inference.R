@@ -12,17 +12,17 @@ visualize_md_strat_inference <- function(bayes_mccv_fits,
 
   get_xlevels <- function(posterior) {
 
-    if(inherits(posterior, 'lm')){
-
-      posterior$xlevels$md_strat
-
-    } else {
+    if(inherits(posterior, 'lmerMod')){
 
       posterior$x@Dimnames[[2]] %>%
         enframe() %>%
         filter(str_detect(value, '^md_strat')) %>%
         pull(value) %>%
         str_remove('md_strat')
+
+    } else {
+
+      posterior$xlevels$md_strat
 
     }
 
@@ -135,8 +135,8 @@ visualize_md_strat_inference <- function(bayes_mccv_fits,
           ) %>%
           mutate(m2 = factor(m2, levels = rev(names(md_method_labels)[-1])))
 
-        probs_upr <- 0.999
-        probs_lwr <- 0.950
+        probs_upr <- 0.990
+        probs_lwr <- 0.940
 
         if(str_detect(.y, 'calibration')){
           probs_lwr <- 0.0010

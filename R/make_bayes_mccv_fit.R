@@ -24,11 +24,10 @@ make_bayes_mccv_fit <- function(risk_evaluation) {
 
   for(i in seq_along(output)){
 
-    output[[i]] <- stan_lm(
-      formula = value ~ md_strat + additional_missing_pct,
-      #+ (1 | iteration),
+    output[[i]] <- stan_lmer(
+      formula = value ~ md_strat + additional_missing_pct + (1 | iteration),
       data = model_data[[i]],
-      prior = R2(0.50),
+      #prior = R2(0.50),
       iter = 5000
     )
 

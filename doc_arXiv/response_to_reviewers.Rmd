@@ -3,131 +3,177 @@ date: "`r Sys.Date()`"
 title: "Response to reviewers"
 output: 
   officedown::rdocx_document:
-    mapstyles:
-      Normal: ['First Paragraph']
+    reference_docx: style_manuscript_times_new_roman.docx
 ---
 
 # Reviewer 1
 
-__Comment__ This article assessed the impact of missing data imputation strategies and how they impacted accuracy of risk predictions. This was conducted on a case study dataset assessing mortality and transplant from a cardiac registry dataset, INTERMACS. It explains the motivation for the study in a nice two pronged approach: (1) the importance of the INTERMACS registry, how it is used, and the potential for better use of the available data to save lives, (2) the problematic approach of using mean imputation. The paper provides a thorough method to evaluate imputations, which I think could be used as a framework for future researchers. It is encouraging to see this kind of paper in this journal, as this kind of research, evaluating missing data strategies (in this case, imputation), are in my experience not frequently seen by this audience. It is also noteworthy that the authors have gone to efforts to ensure reproducibility of the work by providing the code and data in the repository (although the link was not made public yet, as far as I can tell). The paper has fantastic potential for impact, and will hopefully help change the way that other researchers and practitioners handle missing data to administer life saving treatment. Overall, the article is excellent 
+__Comment 1__: This article assessed the impact of missing data imputation strategies and how they impacted accuracy of risk predictions. This was conducted on a case study dataset assessing mortality and transplant from a cardiac registry dataset, INTERMACS. It explains the motivation for the study in a nice two pronged approach: (1) the importance of the INTERMACS registry, how it is used, and the potential for better use of the available data to save lives, (2) the problematic approach of using mean imputation. The paper provides a thorough method to evaluate imputations, which I think could be used as a framework for future researchers. It is encouraging to see this kind of paper in this journal, as this kind of research, evaluating missing data strategies (in this case, imputation), are in my experience not frequently seen by this audience. It is also noteworthy that the authors have gone to efforts to ensure reproducibility of the work by providing the code and data in the repository (although the link was not made public yet, as far as I can tell). The paper has fantastic potential for impact, and will hopefully help change the way that other researchers and practitioners handle missing data to administer life saving treatment. Overall, the article is excellent 
 
-__Response__ We thank the reviewer for their kind words and helpful feedback. We apologize for initially keeping our Github repository private, this was an oversight on our part. The Github repository with all of our analysis code is now publicly available at https://github.com/bcjaeger/INTERMACS-missing-data.
+__Response__: We thank the reviewer for their kind words and helpful feedback. We apologize for initially keeping our Github repository private, this was an oversight on our part. The Github repository with all of our analysis code is now publicly available at https://github.com/bcjaeger/INTERMACS-missing-data.
 
 <br>
 
-__Comment__ While I have a few suggestions, these are quite minor. My main aim in this feedback is to help improve some aspects of communication from the authors to the reader. 
+__Comment 2__: While I have a few suggestions, these are quite minor. My main aim in this feedback is to help improve some aspects of communication from the authors to the reader. 
 
-__Response__ We appreciate the helpful suggestions that the reviewer has provided and provide a point-by-point response below.
+__Response__: We appreciate the helpful suggestions that the reviewer has provided and provide a point-by-point response below.
 
 ## Handling vs imputing missing values 
 
-The paper describes exploring the 'handling' missing values, but from what I can tell, it is mostly about imputation strategies, and not handling. I would consider missing data handling methods to include decisions to remove observations, as well as 'logical' imputations (such as where missing values are identified as correctly being 0, or sections needing to be filled down). 
+__Comment 3__: The paper describes exploring the 'handling' missing values, but from what I can tell, it is mostly about imputation strategies, and not handling. I would consider missing data handling methods to include decisions to remove observations, as well as 'logical' imputations (such as where missing values are identified as correctly being 0, or sections needing to be filled down). I think that the authors could address this by referring to most cases of 'handle/ing' as 'imputation, and by also discussing missing data handling strategies such as listwise deletion. For example, in the 'Methods and Results' section of the Abstract, changing, 'depends on the strategy that was applied to handle missing data' to 'depends on the imputation strategy applied'. That said, it might be possible for the authors to cover deletion methods in their results, discussed in the next section (adding listwise deletion).
 
-I think that the authors could address this by referring to most cases of 'handle/ing' as 'imputation, and by also discussing missing data handling strategies such as listwise deletion. For example, in the 'Methods and Results' section of the Abstract, changing, 'depends on the strategy that was applied to handle missing data' to 'depends on the imputation strategy applied'. That said, it might be possible for the authors to cover deletion methods in their results, discussed in the next section (adding listwise deletion) 
+__Response__: We agree, the term 'handling' is ambiguous while 'imputation' much more direct and appropriate for the current study. We have changed 'handling' to 'imputing' throughout the paper.  
+
 
 ## Adding listwise deletion 
 
-On page 3 on the paragraph starting at line 4, the authors describe missing data handling. The typical behaviour is imputing to the mean - which is very bad, and it is great to see the authors addressing this. Do the authors have a comment on listwise deletion? It is almost always the wrong decision to perform, but I think it is worthwhile addressing in the paper, as it is unfortunately a practice that I think people might not be aware of as being very bad. 
+__Comment 4__: On page 3 on the paragraph starting at line 4, the authors describe missing data handling. The typical behaviour is imputing to the mean - which is very bad, and it is great to see the authors addressing this. Do the authors have a comment on listwise deletion? It is almost always the wrong decision to perform, but I think it is worthwhile addressing in the paper, as it is unfortunately a practice that I think people might not be aware of as being very bad. It could also serve as a baseline/bottom point for the simulation, to show the impact of not imputing. I would be interested in the authors thoughts on this - I don't think that adding listwise deletion as an additional part of the simulation is necessary for publication, but I do think it might improve the paper as it can communicate the dangers of deletion methods. If the authors do not want to compare deletion methods to imputation I think it would be worthwhile to mention reasoning for this in the methods, or discussion section. However, I do think that the term, 'missing data handling' encompasses the process of the data tidying and cleaning decisions that take place when deciding what to do with missing data, which happens to include things like deletion and imputation. If the authors do not wish to discuss deletion methods, then I think they should rephrase the mentions of 'missing data handling' to intead cover only 'imputation of missing data'. If this is the case, I think the authors should provide a sentence or two justifying why they chose not to explore deletion methods in addition to imputation. 
 
-It could also serve as a baseline/bottom point for the simulation, to show the impact of not imputing. I would be interested in the authors thoughts on this - I don't think that adding listwise deletion as an additional part of the simulation is necessary for publication, but I do think it might improve the paper as it can communicate the dangers of deletion methods. 
+__Response__: We agree that listwise deletion should be avoided when developing risk prediction modeling algorithms and that it should be mentioned more in the current study. We chose not to include listwise deletion as a strategy to impute missing values because listwise deletion is not capable of imputing missing values in testing data. Instead of imputing missing values in testing data, listwise deletion would delete them, and this would make our comparison between missing data strategies unfair because listwise deletion would only be evaluated on testing data without missing values. Since we are not including listwise deletion as a missing data strategy, we have changed 'handling' to 'imputing' throughout. We have also added text to the paper discussing listwise deletion and our rationale for not including listwise deletion as an imputation strategy in the Methods section. Specifically, In the 'Statistical Inference' paragraph, we write: 
 
+"When very few data are missing, analysts may apply listwise deletion, \ie removing any observation with at least one missing value. However, listwise deletion can easily lead to biased inference."
 
-If the authors do not want to compare deletion methods to imputation I think it would be worthwhile to mention reasoning for this in the methods, or discussion section. 
+Then, in the "Statistical Learning" paragraph, we write: 
 
-
-However, I do think that the term, 'missing data handling' encompasses the process of the data tidying and cleaning decisions that take place when deciding what to do with missing data, which happens to include things like deletion and imputation. If the authors do not wish to discuss deletion methods, then I think they should rephrase the mentions of 'missing data handling' to intead cover only 'imputation of missing data'. If this is the case, I think the authors should provide a sentence or two justifying why they chose not to explore deletion methods in addition to imputation. 
-
+"Because testing data may contain missing values, listwise deletion is not a feasible strategy for statistical learning tasks."
 
 ## On Acronyms 
 
+__Comment 5__: There are quite a few acronyms in this paper. Would it be possible for the authors to reduce the number of acronyms? Sentences like 'Similar to the PH model, GBDT ensembles assume PH but apply a sequential modeling algorithm to develop RPEs' are a bit dense to parse. I wonder if it might be possible to remove some of the acronyms that are sparsely used. 
 
-There are quite a few acronyms in this paper. Would it be possible for the authors to reduce the number of acronyms? Sentences like 'Similar to the PH model, GBDT ensembles assume PH but apply a sequential modeling algorithm to develop RPEs' are a bit dense to parse. I wonder if it might be possible to remove some of the acronyms that are sparsely used. 
+__Response__: We agree and have reduced the number of acronyms used throughout the paper. 
 
 
-I am also not entirely clear what an RPE is, exactly? This might be a term that is common in this area, so my apologies if this is perhaps misplaced, but how is it different to just 'prediction', or 'predicted values'? If it is an equation that produces a prediction, I'm not sure how this is different to a predicted value / model? 
+__Comment 6__: I am also not entirely clear what an RPE is, exactly? This might be a term that is common in this area, so my apologies if this is perhaps misplaced, but how is it different to just 'prediction', or 'predicted values'? If it is an equation that produces a prediction, I'm not sure how this is different to a predicted value / model? 
+
+__Response__: The reviewer is correct that a risk prediction equation is equivalent to a risk prediction model. We have replaced the acronym 'RPE' with the fully spelled out phrase 'risk prediction model'. We think this has improved the paper's readability and clarify. 
 
 
 ## Thoughts on Methods 
 
 
-The methods of this paper provide concise descriptions of the methodologies. One suggestion is to add a reference to Introduction to Statistical Learning for Gradient Boosted Decision Trees and a few of the other algorithms. 
+__Comment 7__: The methods of this paper provide concise descriptions of the methodologies. One suggestion is to add a reference to Introduction to Statistical Learning for Gradient Boosted Decision Trees and a few of the other algorithms. 
 
+__Response__: We agree that Introduction to Statistical Learning is an excellent resource to provide introductions to these statistical learning algorithms. In the subsection "Risk Prediction Models", we write "A thorough description of stepwise variable selection and boosting can be found in Sections 6.1.2 and 8.2.2, respectively, of \emph{Introduction to Statistical Learning}." and follow with a reference to Introduction to Statistical Learning. 
 
-### Imputation methods 
-
-
-Lines 19-20 on page 6 states: 
+__Comment 8__: Lines 19-20 on page 6 states: 
 'KNN imputation identifies k 'similar' observations for each case with at least one missing value'. 
 Can the authors clarify here the distinction between an observation and a case? 
 
+__Response__: We apologize for the lack of clarity in this sentence. In this instance, 'observation' and 'case' both refer to a single row in the data. We now use the term 'observation' only. Specifically, in the "K-Nearest-Neighbors" paragraph, we write: 
 
-### Missing patterns 
+"KNN imputation identifies $k$ `similar' observations (i.e., neighbors) for each observation with a missing value in a given variable. A donor value for the current missing value is generated by sampling or aggregating the values from the $k$ nearest neighbors."
 
+__Comment 9__: I'm not sure why the 'Missing patterns' section is here and how it relates to the previous sections. I suggest perhaps providing a sentence or two describing why this is important to cover. I understand it is mentioned later in the paper, but it seems this section is missing some level of context, and it could be improved by explaining how this relates to the paper, and why this matters for this research objective. 
 
-I'm not sure why this section is here and how it relates to the previous sections. I suggest perhaps providing a sentence or two describing why this is important to cover. I understand it is mentioned later in the paper, but it seems this section is missing some level of context, and it could be improved by explaining how this relates to the paper, and why this matters for this research objective. 
+__Response__: After revising the manuscript and adding various sections to the text, we have decided to omit the Section on missing patterns to decrease the word count and since it did not have high relevance to the remainder of the manuscript. We thank the reviewer for their feedback on this Section.
 
+__Comment 10__: SAS, R, and Python should be cited as well as relevant R and Python packages/modules used to produce results (such as ggplot2, which I am quite sure was used to create the graphics). 
 
-### 2.6 - computational details 
+__Response__: We have added citations for SAS, R, and Python in addition to citations for the main R packages used in the analysis. These details are written in the 'Computational details' Section. 
 
+## Tables and Figures 
 
-SAS, R, and Python should be cited as well as relevant R and Python packages/modules used to produce results (such as ggplot2, which I am quite sure was used to create the graphics). 
+__Comment 11__: The caption text for the tables and figures could provide more detail to the reader. For example, Table 3 and Table 4 provide important information on the performance of a variety of tests, however it would be helpful to provide some guidance. One template I have found useful is to provide three parts to each caption. The first part is an overview, the second describing the contents, and the third being what we learn/take home message. Of course, this does not always hold true, for example, Table 2 (the typical 'table one' of the paper) that provides overview of the population - there is a lot of information here that is challenging to summarise, but if there are particular things to note about the population, they could be stated here. I don't think captions need to be a whole paragraph, but something that I think will enhance the great work the authors have done already in the paper, so that the audience can absorb it and put it into practice. For example, tables 5 and 6 could be explained in more detail - what do we learn from this, which method is best and why? 
 
+__Response__: We agree and have updated captions for tables and figures to follow the template recommended by the reviewer.
 
-### A note on Tables and Figures 
+__Comment 12__: Another example example, figure 2, could be expanded to state: 'Three Model evaluation metrics (mean with 95%CI errors), improve as the number of multiple imputed datasets increases. ...'. Figure 2 could be explained in more detail in the paper as well. 
 
-
-The caption text for the tables and figures could provide more detail to the reader. For example, Table 3 and Table 4 provide important information on the performance of a variety of tests, however it would be helpful to provide some guidance. One template I have found useful is to provide three parts to each caption. The first part is an overview, the second describing the contents, and the third being what we learn/take home message. Of course, this does not always hold true, for example, Table 2 (the typical 'table one' of the paper) that provides overview of the population - there is a lot of information here that is challenging to summarise, but if there are particular things to note about the population, they could be stated here. 
-
-
-I don't think captions need to be a whole paragraph, but something that I think will enhance the great work the authors have done already in the paper, so that the audience can absorb it and put it into practice. For example, tables 5 and 6 could be explained in more detail - what do we learn from this, which method is best and why? 
-
-Another example example, figure 2, could be expanded to state: 'Three Model evaluation metrics (mean with 95%CI errors), improve as the number of multiple imputed datasets increases. ...'. Figure 2 could be explained in more detail in the paper as well. 
+__Response__: We have replaced the original Figure 2, which focused only on a small subset of our results. The replacement figures show the distribution of improvements in model scores when different imputation strategies are applied relative to imputation to the mean. The results in these updated figures give a more broad overview of results in the current study by adjusting for outcome, % of additional missing data, and modeling strategy. We have used the reviewer's excellent suggestions to caption these updated figures.
 
 ## Discussion 
 
 
-Page 20 line 2: I wonder if some of these references could be mentioned earlier in the paper in the introduction? 
+__Comment 13__: Page 20 line 2: I wonder if some of these references could be mentioned earlier in the paper in the introduction? 
+
+__Response__: We now reference these studies in both the Introduction and the Discussion sections. Specifically, in the introduction, these references are listed after the sentence "As the largest registry for data on patients receiving MCS devices, INTERMACS has been leveraged to develop numerous risk prediction models for mortality and other types of adverse events that may occur after receiving a device."
+
+__Comment 14__: The paper demonstrates how good methods such as KNN are for imputation, however I think it might be just as critical to emphasize the importance of NOT using mean/median imputation methods. 
+
+__Response__: We agree with the reviewer. A paragraph has been added to the Discussion section to present this argument. There is some evidence that imputation to the mean is okay when sample sizes are very large and a flexible imputation method is used, and we try to weigh this evidence carefully with our own findings. For convenience, the paragraph is pasted below: 
+
+"In previous studies involving the INTERMACS data registry, imputation to the mean has been applied prior to developing a mortality risk prediction model. An interesting recent study indicates that imputation to the mean can provide an asymptotically consistent prediction model, given the prediction model is flexible and non-linear. However, theoretical results for finite samples have not yet been established. Our results provide relevant data for the finite sample case, suggesting that using imputation strategies considered in the current study instead of imputation to the mean can improve the prognostic accuracy of downstream models, particularly if multiple imputation is applied. Imputation to the mean should be avoided in future analyses of the INTERMACS registry and analyses where inflexible models are applied."
+
+__Comment 15__: Page 20 line 10 - 12: Can you tell me more about what you learn from the figure here? 
+
+__Response__: This figure has been replaced by more informative visualizations. Our intention for the original figure was to show the overall improvement in model prognostic accuracy when multiple imputation was applied. In the revised manuscript, we formalize that objective in our analysis plan by using Bayesian hierarchical models to estimate the posterior probability that using a given imputation strategy instead of imputation to the mean will improve a model's scaled Brier score, concordance index, and calibration error. Figures 2-4 now convey this overall message, which has also been expressed in their figure captions. 
+
+__Comment 16__: Page 22 line 1: It is fantastic to see that the authors are sharing code. Obviously the data for the paper is likely very sensitive, but I wonder if simulated data is provided? I could not find the github repository they mention, perhaps it is currently set to private? Also the repository with the code should be deposited on zenodo (or Dryad, if Circulation is able to link the repository with Dryad) so a DOI can be provided and it can be cited. 
+
+__Response__: We apologize for keeping the GitHub repository private during the first submission. We have now opened it for public view (https://github.com/bcjaeger/INTERMACS-missing-data) and deposited the repository's code on Zenodo (see ReadMe badge on GitHub repository). Regarding data sharing, we are not authorized to share the original data or a simulation of the original data. However, the INTERMACS data are available on BIOLINCC and we have initiated a request to share the specific data used for this analysis on BIOLINCC as well. 
+
+__Comment 17__: One question I would be interested in seeing answered is what other types of data these approaches are suitable or unsuitable for in the field? So, if I am a medical practitioner with a database of heart attacks that have missing data, am I likely to get similar improvements? Should I use KNN imputation as well? My thoughts are yes, but perhaps there are key structures of the data that are relevant here. 
+
+__Response__: The reviewer raises an excellent question. Given that the current analysis focuses only on the INTERMACS registry, we are cautious to make strong generalizations. In our paragraph on limitations, we recommend future studies focus on providing open source software and tutorials for investigators to run a similar resampling experiment with their own data to identify optimal strategies for imputation of missing values. Specifically, we write 
+
+"Although the \texttt{miceRanger} package allows imputation of new data using existing models, few software packages for imputation allow users to implement multiple imputation with this protocol. Future analyses should introduce more flexible software and hands-on tutorials so that future investigators can optimize imputation of missing data."
 
 
-The paper demonstrates how good methods such as KNN are for imputation, however I think it might be just as critical to emphasize the importance of NOT using mean/median imputation methods. 
+__Comment 18__: The paper has great potential for impact - I can imagine a lot of registries using these approaches to impute missing data and getting improved treatment results, and I think that a key part of this is that the authors have made efforts to share their code. This could be emphasized more in the paper, so the reader knows that they too can use similar approaches with less effort. 
+
+__Response__: We agree with the reviewer and have emphasized the publicly available repository in the following places of the revised manuscript:
+
+- In the Abstract:
+
+- In the "Computational Details" section: "Our R code is available on GitHub"
+
+- In the "Strengths and limitations" paragraph: "we made our analysis R code available in a public repository"
+
+__Comment 19__: Overall, a great paper. 
+
+__Response__: Thank you. We are grateful for this excellent review of our work. Your feedback has substantially improved the quality of the paper.
+
+\newpage
+
+# Reviewer #2: 
+
+__Comment 1__: In this study, the authors applied six strategies of handling missing values to develop three risk prediction equations (RPE), and compared the missing handling techniques on model performance and prediction accuracy. Overall, the manuscript is well-written. To increase the applicability of these missing handling techniques, I have summarized some areas that could be improved. 
+__Response__: We thank the reviewer for their helpful feedback and have provided a point by point response below. 
+
+__Comment 2__: The authors used the missing handling techniques in their RPE development. These RPEs however are not yet established; and the performance of these RPE are not satisfied, for example, the c-index for mortality event is only around 65%. To increase the application of these missing handling techniques and not to distract the readers with the new RPEs, it would be better if the authors could compare these missing handling techniques using an existing prediction model to see if their approaches could improve the predictions. 
+
+__Response__: We agree that it would be interesting to compare risk prediction models in the current study with existing risk prediction models. We have taken steps in the revised paper to be as responsive as possible to the reviewer's feedback: "c-index for mortality event is only around 65%". We have updated our inclusion criteria to identify a more contemporary cohort with more structured and prognostic data (i.e., INTERMACS patients enrolled during or after 2012). C-index values are now generally within the range of 0.69 to 0.71, which is consistent with C-index values of existing risk prediction models. Unfortunately, it is not possible to conduct a fair comparison between existing INTERMACS risk prediction models and the models developed in the current study for two reasons.
+
+1. Existing risk prediction models for INTERMACS have not published any supplemental code or software to generate predicted risk for new data. 
+
+2. Many existing risk prediction models were developed using the entire INTERMACS cohort used in the current study. Therefore, if we were to use these existing risk prediction models, we would be validating them on the same data that they were developed with, which would lead to optimistically biased results.
+
+__Comment 3__: Imputation accuracy: Can the authors compare the imputation accuracy of their techniques through either artificially inducing missing values to known data or simulating data or literature search? It's not critical to have imputation accuracy for prediction purpose (as authors indicated in the discussion), however, the imputation accuracy impacts model inference and will limit the use of certain missing handling techniques. 
+
+__Response__: We agree and have included imputation accuracy in the revised manuscript (see the Evaluating Imputation Accuracy Section, the "Imputation accuracy" paragraph in the Results Section, and the fourth paragraph in the Discussion Section). Due to the substantial quantity of data that were added to the paper in light of this addition, we have removed CIF models from the revised analysis. This decision was made because CIF results were quite similar to boosting results and did not add any relevant new information to the paper.
+
+__Comment 4__: Page 9. Line 12-14 suggests up to 50 predictor variables were used, while page 13 Line 18 suggests 320 predictors with the one missing values exists in the registry. Could the authors clarify how they choose the candidate predictors for their RPE, as well as summarize the proportion of missingness and possible missing patterns for these predictors? For example, it is possible that the variables are missing from an INTERMACS center who failed to submit data. And the variables can also be missing for a certain time period when a center hasn't started their data participation. Under these "real world data" scenarios, can the author make recommendation in their missing handling techniques? 
+
+__Response__: We agree with the reviewer and apologize for omitting this detail. The predictor variable selection process is now written in the "Steps taken in each replicate" paragraph, which can be found in the Internal "Validation via Monte-Carlo Cross-Validation" Section. The relevant text from this paragraph is also copied here for convenience:
+
+"All predictor variables with < 50\% missing values were considered for imputation and subsequent model development...Prior to imputation, 50 predictor variables were selected using a boosting model that quantified variable importance as the fractional contribution of each predictor to the model based on the total gain attributed to using the predictor while growing decision trees."
+
+We have also summarized the proportion of missingness in the overall population and stratified by outcome status in the revised manuscript (see Table 2). Additionally, possible missing patterns related to a selection of relevant mortality predictors are presented in the revised manuscript (see Figure 1).
 
 
-Page 20 line 10 - 12: Can you tell me more about what you learn from the figure here? 
+__Comment 5__: Page 12. Line 1-3. Please clarify the interpretation of scaled Brier score. Usually, the lower the Brier score is, the better the predictions are. It seems here, the scaled brier score is shown as the percentage relative to naïve RPE, the closer to 100% the better. In Table 3. 
 
+__Response__: The reviewer is correct regarding the scaled Brier score. It is analagous to an $R^2$ statistic in linear regression. We have provided more details on interpretation of the scaled Brier score in the revised manuscript. The revised text can be found in the "scaled Brier score" paragraph of the revised manuscript. For convenience, it is also copied below: 
 
-Page 22 line 1: It is fantastic to see that the authors are sharing code. Obviously the data for the paper is likely very sensitive, but I wonder if simulated data is provided? I could not find the github repository they mention, perhaps it is currently set to private? Also the repository with the code should be deposited on zenodo (or Dryad, if Circulation is able to link the repository with Dryad) so a DOI can be provided and it can be cited. 
+"The Brier score is dependent on the rate of observed events, which can make it a difficult metric to interpret. It is often more informative to scale the Brier score based on the Brier score of a naive model. More specifically, for a given risk prediction model, the scaled Brier score is computed as ...[see manuscript for equation]... As the Brier score for risk prediction is analogous to mean-squared error for prediction of a continuous outcome, the scaled Brier score is analogous to the $R^2$ statistic. Similar to the $R^2$ statistic, a scaled Brier score of 1.00 and 0.00 indicate a perfect and worthless model, respectively. In our analyses, a Kaplan-Meier estimate based on the training data (\ie a risk prediction model that did not use any predictor variables) provided the naive prediction. In the current analysis, we multiply scaled Brier score values by 100 for ease of interpretation."
 
+__Comment 6__: Although the KNN (MI) methods improved the scaled Brier score, however, the scaled Brier scores are very closed to 0, which indicate low accuracy of a RPE. 
 
-One question I would be interested in seeing answered is what other types of data these approaches are suitable or unsuitable for in the field? So, if I am a medical practitioner with a database of heart attacks that have missing data, am I likely to get similar improvements? Should I use KNN imputation as well? My thoughts are yes, but perhaps there are key structures of the data that are relevant here. 
+__Response__: We agree and have added the following sentence to our paragraph on limitations in the revised manuscript: "The models we studied obtained low values of scaled Brier score, indicating low prediction accuracy. It is unclear how results may vary for models with higher prediction accuracy."
 
+__Comment 7__: Table 2. please clarify when modeling mortality events, how patients with transplants events and cessation were used, are they treated as censoring or are they dropped? Please explain the potential bias if the transplant patients were not included into the analysis for mortality events. The same question for modeling transplant events, how dead and cessations were handled in the cox model for transplant risk? 
 
-The paper has great potential for impact - I can imagine a lot of registries using these approaches to impute missing data and getting improved treatment results, and I think that a key part of this is that the authors have made efforts to share their code. This could be emphasized more in the paper, so the reader knows that they too can use similar approaches with less effort. 
+__Response__: The reviewer has correctly identified that patients who received transplant or cessation of support were censored at the time of these events in mortality risk prediction models. Similarly, patients who died or received cessation of support were censored at the time of these events in transplant risk prediction models. We have clarified this approach in our "Outcomes and Predictors" section, where we write "For each outcome, we censored patients at the time of competing risks events. For example, in risk prediction models for mortality, patients who were lost to follow-up, received transplant, or had cessation of support were censored at the time of this event".
 
+__Comment 8__: Table 3. The concordance is low, which indicates low model performance. The table title has a typo for "mortality". 
 
-Overall, a great paper. 
+__Response__: Thank you for catching this typo. We have changed 'morality' to 'mortality' and have taken steps to improve the discrimination of the risk prediction models in the current study. These steps are outlined in our response to __Comment 2__ above.
 
+__Comment 9__: Page 15. Line 3. Based on Table 3, for GBDT, the improvement in scale Brier score from KNN (MI) is 0.7 compared to the reference strategy. For CIF, the improvement from KNN (MI) is 0.8 when compared to the reference. These are slightly off in the text, which could be rounding issues. Please clarify. 
 
-Reviewer #2: 
+__Response:__ Thank you for noticing these inconsistencies due to rounding. We have corrected these typos and now use the same rounding specification throughout the manuscript. 
 
-Review for CIRCCQO/2020/00707 - Improving Outcome Predictions for Patients Receiving Mechanical Circulatory Support by Optimizing Imputation of Missing Values 
+__Comment 10__: Page 15 Line 6-8. From Table 3, for the CIF, stepwise PH and GBDT, the missing data strategies that provided the lowest calibration error were missForest, KNN (MI), and BR respectively. Please correct the order of the statement. 
 
-In this study, the authors applied six strategies of handling missing values to develop three risk prediction equations (RPE), and compared the missing handling techniques on model performance and prediction accuracy. Overall, the manuscript is well-written. To increase the applicability of these missing handling techniques, I have summarized some areas that could be improved. 
-
-1. The authors used the missing handling techniques in their RPE development. These RPEs however are not yet established; and the performance of these RPE are not satisfied, for example, the c-index for mortality event is only around 65%. To increase the application of these missing handling techniques and not to distract the readers with the new RPEs, it would be better if the authors could compare these missing handling techniques using an existing prediction model to see if their approaches could improve the predictions. 
-
-2. Imputation accuracy: Can the authors compare the imputation accuracy of their techniques through either artificially inducing missing values to known data or simulating data or literature search? It's not critical to have imputation accuracy for prediction purpose (as authors indicated in the discussion), however, the imputation accuracy impacts model inference and will limit the use of certain missing handling techniques. 
-
-
-3. Page 9. Line 12-14 suggests up to 50 predictor variables were used, while page 13 Line 18 suggests 320 predictors with the one missing values exists in the registry. Could the authors clarify how they choose the candidate predictors for their RPE, as well as summarize the proportion of missingness and possible missing patterns for these predictors? For example, it is possible that the variables are missing from an INTERMACS center who failed to submit data. And the variables can also be missing for a certain time period when a center hasn't started their data participation. Under these "real world data" scenarios, can the author make recommendation in their missing handling techniques? 
-
-4. Page 12. Line 1-3. Please clarify the interpretation of scaled Brier score. Usually, the lower the Brier score is, the better the predictions are. It seems here, the scaled brier score is shown as the percentage relative to naïve RPE, the closer to 100% the better. In Table 3. Although the KNN (MI) methods improved the scaled Brier score, however, the scaled Brier scores are very closed to 0, which indicate low accuracy of a RPE. 
-
-
-5. Table 2. please clarify when modeling mortality events, how patients with transplants events and cessation were used, are they treated as censoring or are they dropped? Please explain the potential bias if the transplant patients were not included into the analysis for mortality events. The same question for modeling transplant events, how dead and cessations were handled in the cox model for transplant risk? 
-
-6. Table 3. The concordance is low, which indicates low model performance. The table title has a typo for "mortality". 
-
-
-7. Page 15. Line 3. Based on Table 3, for GBDT, the improvement in scale Brier score from KNN (MI) is 0.7 compared to the reference strategy. For CIF, the improvement from KNN (MI) is 0.8 when compared to the reference. These are slightly off in the text, which could be rounding issues. Please clarify. 
-
-8. Page 15 Line 6-8. From Table 3, for the CIF, stepwise PH and GBDT, the missing data strategies that provided the lowest calibration error were missForest, KNN (MI), and BR respectively. Please correct the order of the statement. 
+__Response__: Thank you for catching this typo. This sentence was deleted from the revised manuscript due to the substantial revisions applied to our analysis. 
