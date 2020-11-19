@@ -24,7 +24,7 @@ as_gt <- function(tbl_md_strat,
             md_strat = str_replace(md_strat, 'mia', 'mia_si'),
             table_val = if_else(
               md_strat == 'meanmode_si',
-              true = table_glue("{est} ({lwr}, {upr})", rspec=rspec),
+              true = table_glue("{est} (reference)", rspec=rspec),
               false = table_glue("{pm(est)}{est} ({lwr}, {upr})", rspec=rspec)
             )
           ) %>%

@@ -6,6 +6,8 @@ output:
     reference_docx: style_manuscript_times_new_roman.docx
 ---
 
+We thank the editors for the opportunity to respond to our reviewers and re-submit our manuscript. In order to respond to the reviewers' excellent feedback, we have made extensive changes to the manuscript. Due to the high volume of changes (nearly every sentence was updated), we have not used track changes in the update. Below we outline our response to each reviewer, point by point.
+
 # Reviewer 1
 
 __Comment 1__: This article assessed the impact of missing data imputation strategies and how they impacted accuracy of risk predictions. This was conducted on a case study dataset assessing mortality and transplant from a cardiac registry dataset, INTERMACS. It explains the motivation for the study in a nice two pronged approach: (1) the importance of the INTERMACS registry, how it is used, and the potential for better use of the available data to save lives, (2) the problematic approach of using mean imputation. The paper provides a thorough method to evaluate imputations, which I think could be used as a framework for future researchers. It is encouraging to see this kind of paper in this journal, as this kind of research, evaluating missing data strategies (in this case, imputation), are in my experience not frequently seen by this audience. It is also noteworthy that the authors have gone to efforts to ensure reproducibility of the work by providing the code and data in the repository (although the link was not made public yet, as far as I can tell). The paper has fantastic potential for impact, and will hopefully help change the way that other researchers and practitioners handle missing data to administer life saving treatment. Overall, the article is excellent 

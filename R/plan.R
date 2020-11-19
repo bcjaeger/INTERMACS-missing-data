@@ -51,7 +51,7 @@ the_plan <- drake_plan(
   im = clean_intermacs(),
 
   # tabulate descriptives
-  tbl_descriptives = tabulate_descriptives(im),
+  tbl_descriptives = tabulate_descriptives(im, times),
 
   # creates resamples.csv
   resamples = mc_cv_light(data = im, train_prop = 1/2, ntimes = 200),

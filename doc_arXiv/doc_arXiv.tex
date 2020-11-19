@@ -27,30 +27,35 @@ Circulatory Support by Optimizing Imputation of Missing Values}
    \And
     Ryan Cantor, PhD
    \\
+    Kirklin Institute for Research in Surgical Outcomes \\
     University of Alabama at Birmingham \\
   Birmingham, AL \\
   \texttt{} \\
    \And
     Venkata Sthanam, MS
    \\
+    Kirklin Institute for Research in Surgical Outcomes \\
     University of Alabama at Birmingham \\
   Birmingham, AL \\
   \texttt{} \\
    \And
     Rongbing Xie, DrPH
    \\
+    Department of Surgery \\
     University of Alabama at Birmingham \\
   Birmingham, AL \\
   \texttt{} \\
    \And
     James K. Kirklin, MD
    \\
+    Kirklin Institute for Research in Surgical Outcomes \\
     University of Alabama at Birmingham \\
   Birmingham, AL \\
   \texttt{} \\
    \And
     Ramaraju Rudraraju, PhD
    \\
+    Kirklin Institute for Research in Surgical Outcomes \\
     University of Alabama at Birmingham \\
   Birmingham, AL \\
   \texttt{\href{mailto:ramaraju@uab.edu}{\nolinkurl{ramaraju@uab.edu}}} \\
@@ -82,18 +87,18 @@ following surgery using the scaled Brier score, concordance index, and
 calibration error. We used Bayesian hierarchical models to compare model
 performance. Multiple imputation with random forests emerged as a robust
 strategy to impute missing values, increasing model concordance by 0.003
-(25th, 75th percentile: 0.008, 0.052) compared with imputation to the
+(25th, 75th percentile: 0.0008, 0.052) compared with imputation to the
 mean for mortality risk prediction using a downstream proportional
 hazards model. The posterior probability that single and multiple
 imputation using random forests would improve concordance versus mean
-imputation was 0.482 and 0.962, respectively.
+imputation was 0.464 and \textgreater0.999, respectively.
 \newline\textbf{Conclusion} Selecting an optimal strategy to impute
 missing values and applying multiple imputation can improve the
 prognostic accuracy of downstream risk prediction models.
 \end{abstract}
 
 \keywords{
-    Missing Data
+    missing data
    \and
     INTERMACS
    \and
@@ -101,7 +106,7 @@ prognostic accuracy of downstream risk prediction models.
    \and
     heart failure
    \and
-    mortality
+    mechanical circulatory support
    \and
     risk prediction
   }
@@ -143,7 +148,7 @@ for data on patients receiving MCS devices, INTERMACS has been leveraged
 to develop numerous risk prediction models for mortality and other types
 of adverse events that may occur after receiving a device
 \cite{hsich2012should, cotts2014predictors, eckman2011survival, kirklin2017eighth, kormos2019society, Adamo950}.
-A critical step for developing risk prediction models is handling
+An important step for developing risk prediction models is dealing with
 missing data, which is common in a ``real world'' database that is not
 designed for the rigor of data completeness found in a clinical trial.
 While some missing values are related to data entry error, others may
@@ -159,16 +164,16 @@ value of a risk prediction model developed from the INTERMACS registry
 depends on the strategy that was applied to impute missing data prior to
 developing the model. A secondary aim is to measure imputation accuracy
 of each strategy by introducing varying levels of artificial missing
-data and then imputing it. Because imputation to the mean has been a
-standard method for multiple annual summaries of the INTERMACS data, we
-measure the potential improvement in prognostic value of a risk
-prediction model when other strategies are applied to impute missing
-data \emph{instead of imputation to the mean}. The over-arching aim is
-to clarify which imputation strategies are most likely to improve risk
-prediction (and by extension, quality of care) for patients who receive
-MCS devices. This investigation can directly inform future analyses of
-INTERMACS data and provide evidence quantifying the benefit of imputing
-missing data with sound methodology.
+data (\textit{i.e., } data amputation) and then imputing it. Because
+imputation to the mean has been a standard method for multiple annual
+summaries of the INTERMACS data, we measure the potential improvement in
+prognostic value of a risk prediction model when other strategies are
+applied to impute missing data \emph{instead of imputation to the mean}.
+The over-arching aim is to clarify which imputation strategies are most
+likely to improve risk prediction (and by extension, quality of care)
+for patients who receive MCS devices. This investigation can directly
+inform future analyses of INTERMACS data and provide evidence
+quantifying the benefit of imputing missing data with sound methodology.
 
 \hypertarget{methods}{%
 \section{Methods}\label{methods}}
@@ -200,20 +205,20 @@ Review Board and at individual sites.
 \subsection{Outcomes and Predictors}\label{outcomes-and-predictors}}
 
 Patient follow-up begins after implantation of a durable, long term MCS
-device and continues while the device is in place. Registry endpoints
+device and continues while a device is in place. Registry endpoints
 include death on a device, heart transplantation, or cessation of
 support (for recovery and non-recovery reasons). Mortality and
 transplant after MCS were the primary outcomes for the current study. As
 there were only 310 cessation of support events, we did not analyze this
 outcome. For mortality and transplant risk prediction models, we applied
-cause-specific analysis to account for competing risks. For example, in
+event-specific analysis to account for competing risks. For example, in
 risk prediction models for mortality, patients were censored at time of
-loss to follow-up, transplant, or cessation of support, whichever
-occurred first. INTERMACS collects pre-implant data on patient
-characteristics, medical status, and laboratory values. INTERMACS also
-collects follow-up data at regularly scheduled visits and at occurrence
-of adverse events such as re-hospitalization. For the current analysis,
-all pre-implant variables were considered as potential predictors.
+last contact, transplant, or cessation of support, whichever occurred
+first. INTERMACS collects pre-implant data on patient characteristics,
+medical status, and laboratory values. INTERMACS also collects follow-up
+data at regularly scheduled visits and at occurrence of adverse events
+such as re-hospitalization. For the current analysis, all pre-implant
+variables were considered as potential predictors.
 
 \hypertarget{statistical-inference-and-learning-with-missing-data}{%
 \subsection{Statistical Inference and Learning with Missing
@@ -228,16 +233,16 @@ analysts often create multiple imputed datasets, replicate an analysis
 in each of them, and then pool their results to obtain valid test
 statistics for hypothesis testing \cite{rubin2004multiple}. Imputation
 strategies that create a single imputed dataset
-(\textit{e.g., }imputation to the mean) have been shown to increase type
-I errors (\textit{i.e., }rejecting a true null hypothesis) for
+(\textit{e.g., } imputation to the mean) have been shown to increase
+type I errors (\textit{i.e., } rejecting a true null hypothesis) for
 inferential statistics by artificially reducing the variance of observed
 data and ignoring the uncertainty attributed to missing values
 \cite{van2018flexible}. To ensure valid inference, imputation models
 should leverage outcome variables to predict missing predictors
 \cite{sterne2009multiple}. When very few data are missing, analysts may
-apply listwise deletion, \textit{i.e., }removing any observation with at
-least one missing value. However, listwise deletion can easily lead to
-biased inference \cite{van2020rebutting}.
+apply listwise deletion, \textit{i.e., } removing any observation with
+at least one missing value. However, listwise deletion can easily lead
+to biased inference \cite{van2020rebutting}.
 
 \paragraph{Statistical Learning}
 
@@ -251,8 +256,8 @@ strategies that create a single imputed dataset are often used for
 statistical learning \cite{kuhn2019feature}. Previous work has
 emphasized the importance of imputation strategies with greater
 accuracy, suggesting that more accurate imputation strategies lead to
-better performance of downstream models (\textit{i.e., }models fitted to
-the imputed data) \cite{jerez2010missing}. Others have shown that
+better performance of downstream models (\textit{i.e., } models fitted
+to the imputed data) \cite{jerez2010missing}. Others have shown that
 imputation to the mean, model-based imputation, and multiple imputation
 can provide Bayes-optimal prediction models provided certain assumptions
 are true, but these assumptions are difficult to validate in applied
@@ -336,7 +341,7 @@ multiple datasets imputed.
 \paragraph{K-Nearest-Neighbors (KNN)}
 
 KNN imputation identifies \(k\) `similar' observations
-(\textit{i.e., }neighbors) for each observation with a missing value in
+(\textit{i.e., } neighbors) for each observation with a missing value in
 a given variable \cite{chen2000nearest}. A donor value for the current
 missing value is generated by sampling or aggregating the values from
 the \(k\) nearest neighbors. In the current analysis, we identified 10
@@ -368,7 +373,7 @@ training data
 A particularly helpful feature of random forests is their ability to
 estimate testing error by aggregating each decision tree's prediction
 error on data outside of their bootstrapped sample
-(\textit{i.e., }out-of-bag error). In the current analysis, we conduct
+(\textit{i.e., } out-of-bag error). In the current analysis, we conduct
 MICE using one random forest to impute each variable, separately. For
 each imputed dataset, we allowed random forests to be re-fitted until
 out-of-bag error stabilized or a maximum number of iterations was
@@ -383,7 +388,7 @@ potential donors.
 MIA is a technique that uses missing status as a predictor rather than
 explicitly imputing missing values
 \cite{twala2009empirical, ding2010investigation}. MIA adds another
-category to nominal variables: ``Missing''. For numeric variables, MIA
+category to nominal variables: ``Missing.'' For numeric variables, MIA
 creates two columns: one where missing values are imputed with positive
 infinity and the other with negative infinity. Since PH models are not
 compatible with infinite values, we only use MIA in boosting models.
@@ -423,8 +428,12 @@ Accuracy}\label{evaluating-imputation-accuracy}}
 \label{subsec:imputation_accuracy}
 
 Imputation accuracy was computed for each numerical and nominal
-variable, separately. Numeric variable imputation accuracy was measured
-using a re-scaled mean-squared error:
+variable, separately. The observed values of data that were amputed were
+used to assess imputation accuracy. As a consequence, we only measured
+imputation accuracy 15\% or 30\% of additional missing values were
+amputed. In the context of this article, the term `amputation of data'
+means artificially making observed values missing. Numeric variable
+imputation accuracy was measured using a re-scaled mean-squared error:
 \[1 - \frac{\textrm{MSE}(\textrm{current imputation method})}{\textrm{MSE}(\textrm{imputation to the mean})}.\]
 This score is greater than 0 if
 \(\textrm{MSE}(\textrm{current imputation method})\) is smaller than
@@ -518,7 +527,7 @@ error for prediction of a continuous outcome, the scaled Brier score is
 analogous to the \(R^2\) statistic. Similar to the \(R^2\) statistic, a
 scaled \(\widehat{\textrm{BS}}(t)\) of 1.00 and 0.00 indicate a perfect
 and worthless model, respectively. In our analyses, a Kaplan-Meier
-estimate based on the training data (\textit{i.e., }a risk prediction
+estimate based on the training data (\textit{i.e., } a risk prediction
 model that did not use any predictor variables) provided the naive
 prediction. In the current analysis, we multiply scaled Brier score
 values by 100 for ease of interpretation.
@@ -550,7 +559,7 @@ combinations of imputation strategies and modeling strategies described
 in Sections \ref{subsec:imputation} and \ref{subsec:modeling}. For
 convenience, we use the term `modeling algorithm' to denote the
 combination of a missing data strategy and a modeling strategy
-(\textit{e.g., }imputation using mean/mode values followed by fitting
+(\textit{e.g., } imputation using mean/mode values followed by fitting
 the PH model with stepwise variable selection) \cite{kuhn2013applied}.
 We conducted internal validation using 200 replicates of Monte-Carlo
 cross validation, a resampling technique for internal validation.
@@ -570,9 +579,9 @@ contribution of each predictor to the model based on the total gain
 attributed to using the predictor while growing decision trees.
 Imputation was conducted in the training and testing sets, separately,
 for each imputation strategy. Although some imputation strategies
-(\textit{e.g., }KNN and random forests) can impute data in the testing
+(\textit{e.g., } KNN and random forests) can impute data in the testing
 set using models fitted to the training set, others
-(\textit{e.g., }Bayesian regression, PMM, and hot deck) cannot.
+(\textit{e.g., } Bayesian regression, PMM, and hot deck) cannot.
 Therefore, to ensure fair comparisons in our experiment, each imputation
 procedure imputed data in the training set using models fitted to the
 training set and then imputed data in the testing set using models
@@ -630,11 +639,13 @@ missing values instead of imputation to the mean.
 
 SAS software (version 9.4) and Python (version 3.8.2) were used to
 create analytic data for the current study
-\cite{van1995python, sas2013}. Base R (version 4.0.3) was used in
+\cite{van1995python, sas2013}. These analyses were completed using The
+American Heart Association Precision Medicine Platform
+(\url{https://precision.heart.org/}). Base R (version 4.0.3) was used in
 combination with a number of open-source R packages
-(\textit{e.g., }\texttt{drake}, \texttt{tidyverse}, \texttt{naniar},
+(\textit{e.g., } \texttt{drake}, \texttt{tidyverse}, \texttt{naniar},
 \texttt{table.glue}, \texttt{mice}, \texttt{miceRanger}, and others) to
-conduct our analysis
+conduct statistical analyses and create the current manuscript
 \cite{drake, naniar, mice, miceRanger, table.glue, tidyverse, rstanarm, tidybayes, survival, tidymodels, riskRegression}.
 Our R code is available on GitHub (see
 \url{https://github.com/bcjaeger/INTERMACS-missing-data})
@@ -647,21 +658,24 @@ Monte-Carlo cross validation runs \cite{cheaha}.
 
 \paragraph{Patient Characteristics}
 
-During the first 6 months after receiving MCS, the number (\% of overall
-population) of deaths, transplants, and loss-to-follow-up events was
-1,897 (13\%), 1,067 (7.2\%), and 981 (6.7\%), respectively. The mean
-(standard deviation) age of patients was 57 (13) years, 66\% of patients
-identified as white and 79\% were male (Table
-\ref{tbl_characteristics}).
+During the first 6 months after receiving MCS, 1,897 (13\%) patients
+died and 1,067 (7.2\%) had a transplant. In total, 981 (6.7\%) patients
+had a follow-up time \textless{} 6 months and were considered
+right-censored in the current analysis. The mean (standard deviation)
+age of patients was 57 (13) years, 66\% of patients identified as white
+and 79\% were male (Table \ref{tbl_characteristics}).
 
 \paragraph{Missing data}
 
 Many predictor variables exhibited similar proportions of missing values
 in different outcome groups (Table \ref{tbl_missingness}). However, the
 number (percent) of missing values for surgery time was an exception,
-with 6,125 (41.6\%) in the overall population, 2,246 (53.4\%) among
-patients who died, and 1,713 (27.2\%) among patients who were censored.
-Additionally, missing values for surgery time were frequently
+with 6,125 (41.6\%) in the overall population, 795 (41.9\%) among
+patients who died, and 110 (11.2\%) among patients who were censored.
+This pattern is likely attributable to the later introduction of surgery
+time into the INTERMACS registry compared to other variables. The
+collection of surgery time in the INTERMACS registry began on May 30,
+2014. Additionally, missing values for surgery time were frequently
 accompanied by missing values for CV pressure (Figure \ref{fig:upset}).
 
 \paragraph{Imputation accuracy}
@@ -755,19 +769,20 @@ Adjusting for the amount of additional missing data amputed and the
 outcome variable, the posterior probability that an imputation strategy
 would improve the scaled Brier score of a downstream model relative to
 imputation to the mean was maximized by using multiple imputation with
-random forests (probability of improvement: 1.000; Figure
+random forests (probability of improvement: \textgreater0.999; Figure
 \ref{fig:fig_md_strat_infer_ipa}). Similarly, multiple imputation using
 random forests was estimated to have the highest posterior probability
 of improving the C-index in comparison to using imputation to the mean
-(probability of improvement: 1.000; Figure
+(probability of improvement: \textgreater0.999; Figure
 \ref{fig:fig_md_strat_infer_auc}). However, the estimated posterior
-probability of a reduction in calibration was 1 when using either single
-or multiple imputation with random forests compared with imputation to
-the mean (Figure \ref{fig:fig_md_strat_infer_cal_error}). Although
-imputation using random forest was estimated to be the best overall
-option, there was moderate to strong evidence that MIA and each multiple
-imputation strategy we applied would improve prognostic accuracy of
-downstream models compared with imputation to the mean.
+probability of a reduction in calibration was \textgreater0.999 when
+using either single or multiple imputation with random forests compared
+with imputation to the mean (Figure
+\ref{fig:fig_md_strat_infer_cal_error}). Although imputation using
+random forest was estimated to be the best overall option, there was
+moderate to strong evidence that MIA and each multiple imputation
+strategy we applied would improve prognostic accuracy of downstream
+models compared with imputation to the mean.
 
 \hypertarget{discussion}{%
 \section{Discussion}\label{discussion}}
@@ -822,7 +837,8 @@ imputation led to risk prediction models with the highest discrimination
 and lowest calibration error. Results from the current study are
 consistent with these previous findings but also extend their results by
 providing evidence from a larger source of data
-(\textit{i.e., }INTERMACS) and dealing with `real-world' missing values.
+(\textit{i.e., } INTERMACS) and dealing with `real-world' missing
+values.
 
 Others have previously evaluated imputation techniques based on the
 accuracy with which these techniques impute missing values in the
@@ -875,50 +891,59 @@ investigation can directly inform future analyses of INTERMACS data and
 provide evidence quantifying the benefit of imputing missing data with
 sound methodology.
 
+\paragraph{Sources of Funding}
+
+This work is supported by the American Heart Association, grant\#
+18AIML34280052. De-identified data provided from the INTERMACS contract
+with from the National Heart, Lung, and Blood Institute; National
+Institutes of Health; and Department of Health and Human Services, under
+contract\# HHSN268201100025C.
+
 \clearpage
 \begin{table}
-\caption{Participant characteristics stratified by event status. The majority of patients were male and nearly all mechanical circulatory support devices were left-ventricular assistance devices.}
+\footnotesize
+\caption{Participant characteristics overall and stratified by event status at 6 months following surgery to receive mechanical circulatory support. The majority of patients were male and nearly all mechanical circulatory support devices were left-ventricular assistance devices.}
 \label{tbl_characteristics}
 
 
-\begin{tabular}{lccccc}
+\begin{tabular}{lcccccc}
 \toprule
-Characteristic & Overall & Censored & Cessation of support & Dead & Transplant\\
+Characteristic & Overall & Dead & Transplant & Cessation of support & Alive on device & Censored\\
 \midrule
-No. of patients & 14,738 & 6,308 & 310 & 4,204 & 3,916\\
-Age, years & 57 (13) & 57 (13) & 48 (14) & 61 (12) & 53 (12)\\
-Sex &  &  &  &  & \\
-\hspace{1em}Female & 21 & 22 & 41 & 22 & 19\\
-\hspace{1em}Male & 79 & 78 & 59 & 78 & 81\\
+No. of patients & 14,738 & 1,897 & 1,067 & 55 & 10,738 & 981\\
+Age, years & 57 (13) & 62 (12) & 54 (12) & 52 (13) & 57 (13) & 57 (13)\\
+Sex &  &  &  &  &  & \\
+\hspace{1em}Female & 21 & 23 & 23 & 31 & 21 & 22\\
+\hspace{1em}Male & 79 & 77 & 77 & 69 & 79 & 78\\
 \addlinespace
-Race &  &  &  &  & \\
-\hspace{1em}White & 66 & 63 & 64 & 71 & 67\\
-\hspace{1em}Black & 25 & 28 & 27 & 21 & 23\\
-\hspace{1em}Other & 9.2 & 9.6 & 9.4 & 7.4 & 10\\
-Body mass index & 29 (7) & 29 (7) & 29 (8) & 29 (7) & 28 (6)\\
+Race &  &  &  &  &  & \\
+\hspace{1em}White & 66 & 71 & 68 & 64 & 66 & 63\\
+\hspace{1em}Black & 25 & 20 & 20 & 27 & 26 & 26\\
+\hspace{1em}Other & 9.2 & 8.4 & 12 & 9.1 & 8.8 & 11\\
+Body mass index & 29 (7) & 29 (7) & 27 (6) & 29 (8) & 29 (7) & 28 (7)\\
 \addlinespace
-Device strategy &  &  &  &  & \\
-\hspace{1em}Other & 0.6 & 0.6 & 2.6 & 0.5 & 0.6\\
-\hspace{1em}Bridge to transplant & 52 & 43 & 51 & 40 & 81\\
-\hspace{1em}Destination therapy & 47 & 56 & 46 & 60 & 18\\
-LVEDD & 6.83 (1.10) & 6.85 (1.07) & 6.49 (0.93) & 6.69 (1.12) & 6.95 (1.12)\\
+Device strategy &  &  &  &  &  & \\
+\hspace{1em}Other & 0.6 & 0.7 & 0.3 & 5.5 & 0.5 & 1.3\\
+\hspace{1em}Bridge to transplant & 52 & 42 & 90 & 51 & 51 & 51\\
+\hspace{1em}Destination therapy & 47 & 58 & 9.5 & 44 & 49 & 48\\
+LVEDD & 6.83 (1.10) & 6.56 (1.12) & 6.86 (1.13) & 6.33 (1.03) & 6.88 (1.08) & 6.78 (1.12)\\
 \addlinespace
-Urinary albumin, g/dl & 3.41 (0.64) & 3.42 (0.61) & 3.41 (0.64) & 3.33 (0.66) & 3.49 (0.65)\\
-Urinary creatinine, mg/dl & 1.39 (0.68) & 1.36 (0.62) & 1.17 (0.53) & 1.49 (0.77) & 1.35 (0.67)\\
-CV pressure & 10.8 (6.2) & 10.4 (6.1) & 9.9 (6.0) & 11.6 (6.5) & 10.7 (6.0)\\
-Periphal edema & 35 & 33 & 37 & 44 & 31\\
-BUN, mg/dl & 29 (18) & 28 (17) & 22 (13) & 32 (19) & 28 (18)\\
+Urinary albumin, g/dL & 3.41 (0.64) & 3.26 (0.63) & 3.51 (0.61) & 3.43 (0.63) & 3.43 (0.64) & 3.40 (0.62)\\
+Urinary creatinine, mg/dL & 1.39 (0.68) & 1.54 (0.80) & 1.36 (0.70) & 1.17 (0.61) & 1.37 (0.66) & 1.36 (0.57)\\
+CV pressure & 10.8 (6.2) & 12.2 (6.7) & 10.6 (5.7) & 9.9 (6.3) & 10.7 (6.2) & 10.3 (5.7)\\
+Periphal edema & 35 & 44 & 30 & 38 & 35 & 30\\
+BUN, mg/dL & 29 (18) & 34 (20) & 28 (19) & 27 (21) & 28 (17) & 29 (19)\\
 \addlinespace
-Bilirubin levels, mg/dl & 1.37 (1.84) & 1.25 (1.14) & 1.28 (1.95) & 1.52 (2.46) & 1.41 (1.97)\\
-Device type &  &  &  &  & \\
-\hspace{1em}Bi-ventricular assistance device & 3.5 & 2.1 & 0.3 & 5.8 & 3.4\\
-\hspace{1em}Left-ventricular assistance device & 97 & 98 & 100 & 94 & 97\\
-Surgery time, minutes & 292 (113) & 289 (110) & 272 (96) & 320 (128) & 272 (98)\\
+Bilirubin levels, mg/dL & 1.37 (1.84) & 1.80 (3.10) & 1.42 (2.05) & 1.47 (3.32) & 1.29 (1.53) & 1.27 (1.17)\\
+Device type &  &  &  &  &  & \\
+\hspace{1em}Bi-ventricular assistance device & 3.5 & 10 & 5.9 & 1.8 & 2.0 & 3.6\\
+\hspace{1em}Left-ventricular assistance device & 97 & 90 & 94 & 98 & 98 & 96\\
+Surgery time, minutes & 292 (113) & 337 (136) & 272 (100) & 291 (92) & 286 (107) & 289 (116)\\
 \addlinespace
-CPB time, minutes & 95 (49) & 93 (45) & 88 (38) & 103 (56) & 90 (44)\\
+CPB time, minutes & 95 (49) & 113 (63) & 92 (51) & 94 (40) & 92 (45) & 94 (46)\\
 \bottomrule
-\multicolumn{6}{l}{\rule{0pt}{1em}\textit{Note: }}\\
-\multicolumn{6}{l}{\rule{0pt}{1em}Table values are mean (standard deviation) or \%}\\
+\multicolumn{7}{l}{\rule{0pt}{1em}\textit{Note: }}\\
+\multicolumn{7}{l}{\rule{0pt}{1em}Table values are mean (standard deviation) or \%}\\
 \end{tabular}
 
 \end{table}
@@ -926,28 +951,29 @@ CPB time, minutes & 95 (49) & 93 (45) & 88 (38) & 103 (56) & 90 (44)\\
 \clearpage
 
 \begin{table} 
- \caption{Number (percent) of missing values for a selection of predictor variables in the overall population and in subgroups based on event status. Many predictor variables exhibited similar proportions of missing values in different outcome groups, but surgery time was an exception.} 
+ \caption{Number (percent) of missing values for a selection of predictor variables in the overall population and in subgroups based on event status. Many predictor variables exhibited similar proportions of missing values in different outcome groups, but surgery time was an exception. This pattern is likely due to the fact that surgery time was added to the INTERMACS data after 2012} 
 \label{tbl_missingness} 
+\footnotesize
  
-\begin{tabular}{lccccc}
+\begin{tabular}{lcccccc}
 \toprule
- & Overall & Dead & Transplant & Censored & Cessation of support \\ 
+ & Overall & Dead & Alive on device & Transplant & Cessation of support & Censored \\ 
 \midrule
-CV pressure & 7,415 (50.3\%) & 2,156 (51.3\%) & 2,006 (51.2\%) & 3,108 (49.3\%) & 145 (46.8\%) \\ 
-Surgery time, minutes & 6,125 (41.6\%) & 2,246 (53.4\%) & 2,007 (51.3\%) & 1,713 (27.2\%) & 159 (51.3\%) \\ 
-Periphal edema & 5,093 (34.6\%) & 1,543 (36.7\%) & 1,470 (37.5\%) & 1,952 (30.9\%) & 128 (41.3\%) \\ 
-LVEDD & 3,155 (21.4\%) & 1,000 (23.8\%) & 866 (22.1\%) & 1,233 (19.5\%) & 56 (18.1\%) \\ 
-Urinary albumin, g/dl & 1,014 (6.88\%) & 326 (7.75\%) & 309 (7.89\%) & 359 (5.69\%) & 20 (6.45\%) \\ 
-CPB time, minutes & 1,010 (6.85\%) & 287 (6.83\%) & 274 (7.00\%) & 421 (6.67\%) & 28 (9.03\%) \\ 
-Bilirubin levels, mg/dl & 850 (5.77\%) & 291 (6.92\%) & 237 (6.05\%) & 304 (4.82\%) & 18 (5.81\%) \\ 
-Body mass index & 77 (0.52\%) & 26 (0.62\%) & 19 (0.49\%) & 31 (0.49\%) & 1 (0.32\%) \\ 
-BUN, mg/dl & 50 (0.34\%) & 10 (0.24\%) & 8 (0.20\%) & 32 (0.51\%) & 0 (0.00\%) \\ 
-Sex & 24 (0.16\%) & 9 (0.21\%) & 4 (0.10\%) & 11 (0.17\%) & 0 (0.00\%) \\ 
-Urinary creatinine, mg/dl & 20 (0.14\%) & 8 (0.19\%) & 4 (0.10\%) & 8 (0.13\%) & 0 (0.00\%) \\ 
-Age, years & 0 (0.00\%) & 0 (0.00\%) & 0 (0.00\%) & 0 (0.00\%) & 0 (0.00\%) \\ 
-Race & 0 (0.00\%) & 0 (0.00\%) & 0 (0.00\%) & 0 (0.00\%) & 0 (0.00\%) \\ 
-Device strategy & 0 (0.00\%) & 0 (0.00\%) & 0 (0.00\%) & 0 (0.00\%) & 0 (0.00\%) \\ 
-Device type & 0 (0.00\%) & 0 (0.00\%) & 0 (0.00\%) & 0 (0.00\%) & 0 (0.00\%) \\ 
+CV pressure & 7,415 (50.3\%) & 920 (48.5\%) & 5,507 (51.3\%) & 539 (50.5\%) & 29 (52.7\%) & 420 (42.8\%) \\ 
+Surgery time, minutes & 6,125 (41.6\%) & 795 (41.9\%) & 4,727 (44.0\%) & 470 (44.0\%) & 23 (41.8\%) & 110 (11.2\%) \\ 
+Periphal edema & 5,093 (34.6\%) & 716 (37.7\%) & 3,935 (36.6\%) & 368 (34.5\%) & 15 (27.3\%) & 59 (6.01\%) \\ 
+LVEDD & 3,155 (21.4\%) & 458 (24.1\%) & 2,274 (21.2\%) & 235 (22.0\%) & 12 (21.8\%) & 176 (17.9\%) \\ 
+Urinary albumin, g/dL & 1,014 (6.88\%) & 121 (6.38\%) & 745 (6.94\%) & 89 (8.34\%) & 4 (7.27\%) & 55 (5.61\%) \\ 
+CPB time, minutes & 1,010 (6.85\%) & 149 (7.85\%) & 678 (6.31\%) & 77 (7.22\%) & 6 (10.9\%) & 100 (10.2\%) \\ 
+Bilirubin levels, mg/dL & 850 (5.77\%) & 113 (5.96\%) & 605 (5.63\%) & 82 (7.69\%) & 4 (7.27\%) & 46 (4.69\%) \\ 
+Body mass index & 77 (0.52\%) & 11 (0.58\%) & 55 (0.51\%) & 6 (0.56\%) & 1 (1.82\%) & 4 (0.41\%) \\ 
+BUN, mg/dL & 50 (0.34\%) & 4 (0.21\%) & 41 (0.38\%) & 1 (0.09\%) & 0 (0.00\%) & 4 (0.41\%) \\ 
+Sex & 24 (0.16\%) & 4 (0.21\%) & 19 (0.18\%) & 1 (0.09\%) & 0 (0.00\%) & 0 (0.00\%) \\ 
+Urinary creatinine, mg/dL & 20 (0.14\%) & 3 (0.16\%) & 15 (0.14\%) & 2 (0.19\%) & 0 (0.00\%) & 0 (0.00\%) \\ 
+Age, years & 0 (0.00\%) & 0 (0.00\%) & 0 (0.00\%) & 0 (0.00\%) & 0 (0.00\%) & 0 (0.00\%) \\ 
+Race & 0 (0.00\%) & 0 (0.00\%) & 0 (0.00\%) & 0 (0.00\%) & 0 (0.00\%) & 0 (0.00\%) \\ 
+Device strategy & 0 (0.00\%) & 0 (0.00\%) & 0 (0.00\%) & 0 (0.00\%) & 0 (0.00\%) & 0 (0.00\%) \\ 
+Device type & 0 (0.00\%) & 0 (0.00\%) & 0 (0.00\%) & 0 (0.00\%) & 0 (0.00\%) & 0 (0.00\%) \\ 
 \bottomrule
 \end{tabular} 
  \end{table}
@@ -999,7 +1025,7 @@ Imputation method & Single Imputation & Multiple Imputation & Single Imputation 
 \midrule
 \multicolumn{1}{l}{No additional missing data} \\ 
 \midrule
-Imputation to the mean & 6.09 (5.71, 6.54) & -- & 7.27 (6.83, 7.77) & -- \\ 
+Imputation to the mean & 6.09 (reference) & -- & 7.27 (reference) & -- \\ 
 Missingness as an attribute & -- & -- & +0.09 (-0.16, 0.31) & -- \\ 
 Hot deck & -0.25 (-0.47, 0.01) & +0.05 (-0.15, 0.24) & -0.24 (-0.46, 0.03) & +0.25 (0.08, 0.45) \\ 
 K-nearest-neighbors & +0.09 (-0.06, 0.23) & +0.18 (0.04, 0.34) & -0.06 (-0.27, 0.18) & +0.28 (0.06, 0.46) \\ 
@@ -1009,7 +1035,7 @@ Bayesian regression & -0.35 (-0.61, -0.10) & +0.07 (-0.10, 0.29) & -0.25 (-0.52,
 \midrule
 \multicolumn{1}{l}{+15\% additional missing data} \\ 
 \midrule
-Imputation to the mean & 5.56 (4.95, 6.03) & -- & 6.72 (6.13, 7.33) & -- \\ 
+Imputation to the mean & 5.56 (reference) & -- & 6.72 (reference) & -- \\ 
 Missingness as an attribute & -- & -- & +0.52 (0.21, 0.77) & -- \\ 
 Hot deck & +0.10 (-0.22, 0.46) & +0.49 (0.21, 0.78) & +0.02 (-0.28, 0.33) & +0.58 (0.29, 0.92) \\ 
 K-nearest-neighbors & +0.36 (0.10, 0.65) & +0.53 (0.25, 0.79) & +0.04 (-0.23, 0.36) & +0.42 (0.16, 0.68) \\ 
@@ -1019,7 +1045,7 @@ Bayesian regression & +0.05 (-0.44, 0.44) & +0.49 (0.10, 0.85) & +0.19 (-0.21, 0
 \midrule
 \multicolumn{1}{l}{+30\% additional missing data} \\ 
 \midrule
-Imputation to the mean & 4.79 (4.11, 5.55) & -- & 6.29 (5.67, 7.02) & -- \\ 
+Imputation to the mean & 4.79 (reference) & -- & 6.29 (reference) & -- \\ 
 Missingness as an attribute & -- & -- & +0.40 (0.11, 0.75) & -- \\ 
 Hot deck & +0.47 (0.03, 0.99) & +0.73 (0.22, 1.38) & +0.10 (-0.24, 0.44) & +0.51 (0.05, 0.99) \\ 
 K-nearest-neighbors & +0.57 (0.23, 0.97) & +0.77 (0.47, 1.18) & -0.09 (-0.44, 0.23) & +0.36 (0.09, 0.67) \\ 
@@ -1044,7 +1070,7 @@ Imputation method & Single Imputation & Multiple Imputation & Single Imputation 
 \midrule
 \multicolumn{1}{l}{No additional missing data} \\ 
 \midrule
-Imputation to the mean & 9.35 (8.80, 9.71) & -- & 9.00 (8.55, 9.41) & -- \\ 
+Imputation to the mean & 9.35 (reference) & -- & 9.00 (reference) & -- \\ 
 Missingness as an attribute & -- & -- & -0.07 (-0.28, 0.13) & -- \\ 
 Hot deck & +0.01 (-0.12, 0.15) & +0.06 (-0.04, 0.23) & -0.24 (-0.43, 0.04) & -0.01 (-0.20, 0.17) \\ 
 K-nearest-neighbors & +0.06 (-0.04, 0.17) & +0.08 (0.00, 0.19) & -0.27 (-0.50, -0.05) & -0.05 (-0.20, 0.10) \\ 
@@ -1054,7 +1080,7 @@ Bayesian regression & +0.03 (-0.13, 0.16) & +0.10 (0.00, 0.26) & -0.32 (-0.58, -
 \midrule
 \multicolumn{1}{l}{+15\% additional missing data} \\ 
 \midrule
-Imputation to the mean & 8.76 (8.20, 9.21) & -- & 8.01 (7.57, 8.54) & -- \\ 
+Imputation to the mean & 8.76 (reference) & -- & 8.01 (reference) & -- \\ 
 Missingness as an attribute & -- & -- & +0.50 (0.27, 0.78) & -- \\ 
 Hot deck & +0.25 (-0.04, 0.55) & +0.42 (0.20, 0.78) & -0.10 (-0.34, 0.23) & +0.21 (-0.02, 0.52) \\ 
 K-nearest-neighbors & +0.46 (0.20, 0.73) & +0.54 (0.28, 0.79) & -0.10 (-0.41, 0.20) & +0.12 (-0.12, 0.38) \\ 
@@ -1064,7 +1090,7 @@ Bayesian regression & +0.53 (0.21, 0.79) & +0.74 (0.37, 0.94) & -0.07 (-0.39, 0.
 \midrule
 \multicolumn{1}{l}{+30\% additional missing data} \\ 
 \midrule
-Imputation to the mean & 7.96 (7.26, 8.63) & -- & 7.09 (6.45, 7.68) & -- \\ 
+Imputation to the mean & 7.96 (reference) & -- & 7.09 (reference) & -- \\ 
 Missingness as an attribute & -- & -- & +0.83 (0.55, 1.10) & -- \\ 
 Hot deck & +0.45 (-0.02, 0.90) & +0.60 (0.15, 1.11) & -0.01 (-0.34, 0.41) & +0.19 (-0.17, 0.65) \\ 
 K-nearest-neighbors & +0.42 (0.00, 0.79) & +0.61 (0.18, 0.90) & -0.21 (-0.54, 0.19) & +0.09 (-0.22, 0.46) \\ 
@@ -1089,7 +1115,7 @@ Imputation method & Single Imputation & Multiple Imputation & Single Imputation 
 \midrule
 \multicolumn{1}{l}{No additional missing data} \\ 
 \midrule
-Imputation to the mean & 69.3 (68.9, 69.8) & -- & 70.7 (70.3, 71.0) & -- \\ 
+Imputation to the mean & 69.3 (reference) & -- & 70.7 (reference) & -- \\ 
 Missingness as an attribute & -- & -- & 0.00 (-0.20, 0.19) & -- \\ 
 Hot deck & -0.20 (-0.44, 0.05) & +0.04 (-0.13, 0.27) & -0.19 (-0.36, 0.00) & +0.13 (-0.04, 0.28) \\ 
 K-nearest-neighbors & +0.03 (-0.10, 0.23) & +0.14 (-0.02, 0.36) & -0.10 (-0.30, 0.13) & +0.14 (-0.03, 0.30) \\ 
@@ -1099,7 +1125,7 @@ Bayesian regression & -0.39 (-0.69, -0.10) & +0.09 (-0.16, 0.28) & -0.21 (-0.44,
 \midrule
 \multicolumn{1}{l}{+15\% additional missing data} \\ 
 \midrule
-Imputation to the mean & 69.2 (68.8, 69.7) & -- & 70.5 (70.1, 71.0) & -- \\ 
+Imputation to the mean & 69.2 (reference) & -- & 70.5 (reference) & -- \\ 
 Missingness as an attribute & -- & -- & +0.10 (-0.11, 0.31) & -- \\ 
 Hot deck & -0.18 (-0.52, 0.19) & +0.25 (-0.07, 0.58) & -0.23 (-0.50, 0.03) & +0.12 (-0.07, 0.32) \\ 
 K-nearest-neighbors & +0.16 (-0.17, 0.42) & +0.30 (0.05, 0.56) & -0.16 (-0.33, 0.10) & +0.10 (-0.07, 0.31) \\ 
@@ -1109,7 +1135,7 @@ Bayesian regression & -0.50 (-0.95, -0.06) & +0.20 (-0.11, 0.47) & -0.29 (-0.48,
 \midrule
 \multicolumn{1}{l}{+30\% additional missing data} \\ 
 \midrule
-Imputation to the mean & 68.9 (68.4, 69.4) & -- & 70.2 (69.8, 70.7) & -- \\ 
+Imputation to the mean & 68.9 (reference) & -- & 70.2 (reference) & -- \\ 
 Missingness as an attribute & -- & -- & +0.12 (-0.08, 0.31) & -- \\ 
 Hot deck & -0.15 (-0.52, 0.30) & +0.12 (-0.23, 0.51) & -0.22 (-0.47, 0.02) & +0.10 (-0.17, 0.32) \\ 
 K-nearest-neighbors & +0.17 (-0.11, 0.49) & +0.33 (0.09, 0.65) & -0.08 (-0.27, 0.16) & +0.19 (-0.01, 0.38) \\ 
@@ -1134,7 +1160,7 @@ Imputation method & Single Imputation & Multiple Imputation & Single Imputation 
 \midrule
 \multicolumn{1}{l}{No additional missing data} \\ 
 \midrule
-Imputation to the mean & 2.41 (1.71, 3.44) & -- & 3.29 (2.24, 4.80) & -- \\ 
+Imputation to the mean & 2.41 (reference) & -- & 3.29 (reference) & -- \\ 
 Missingness as an attribute & -- & -- & -0.09 (-1.07, 0.65) & -- \\ 
 Hot deck & -0.04 (-0.68, 0.58) & -0.45 (-1.25, 0.25) & -0.13 (-1.12, 0.65) & -0.90 (-1.98, 0.01) \\ 
 K-nearest-neighbors & +0.04 (-0.59, 0.65) & -0.29 (-0.80, 0.39) & -0.30 (-1.14, 0.61) & -0.75 (-1.59, 0.14) \\ 
@@ -1144,7 +1170,7 @@ Bayesian regression & -0.08 (-0.75, 0.53) & -0.57 (-1.43, 0.02) & -0.26 (-1.08, 
 \midrule
 \multicolumn{1}{l}{+15\% additional missing data} \\ 
 \midrule
-Imputation to the mean & 5.75 (3.74, 8.59) & -- & 6.28 (4.17, 9.45) & -- \\ 
+Imputation to the mean & 5.75 (reference) & -- & 6.28 (reference) & -- \\ 
 Missingness as an attribute & -- & -- & -2.83 (-4.81, -0.83) & -- \\ 
 Hot deck & -2.16 (-4.31, -1.08) & -3.92 (-6.23, -1.72) & -1.66 (-3.82, -0.34) & -3.44 (-5.97, -1.48) \\ 
 K-nearest-neighbors & -2.01 (-3.51, -0.66) & -2.48 (-4.08, -1.14) & -0.61 (-2.28, 0.84) & -2.04 (-3.32, -0.63) \\ 
@@ -1154,7 +1180,7 @@ Bayesian regression & -3.76 (-6.45, -1.81) & -3.80 (-6.61, -1.04) & -3.79 (-6.80
 \midrule
 \multicolumn{1}{l}{+30\% additional missing data} \\ 
 \midrule
-Imputation to the mean & 9.48 (5.50, 15.3) & -- & 7.02 (4.32, 11.3) & -- \\ 
+Imputation to the mean & 9.48 (reference) & -- & 7.02 (reference) & -- \\ 
 Missingness as an attribute & -- & -- & -1.61 (-5.29, 0.68) & -- \\ 
 Hot deck & -4.95 (-9.18, -2.49) & -6.69 (-12.8, -1.56) & -2.48 (-5.46, -0.31) & -2.48 (-7.18, 0.58) \\ 
 K-nearest-neighbors & -3.47 (-6.42, -1.53) & -4.49 (-7.49, -2.39) & +0.73 (-1.56, 3.27) & -1.47 (-3.59, 0.59) \\ 
@@ -1179,7 +1205,7 @@ Imputation method & Single Imputation & Multiple Imputation & Single Imputation 
 \midrule
 \multicolumn{1}{l}{No additional missing data} \\ 
 \midrule
-Imputation to the mean & 79.4 (79.0, 79.8) & -- & 79.2 (78.9, 79.7) & -- \\ 
+Imputation to the mean & 79.4 (reference) & -- & 79.2 (reference) & -- \\ 
 Missingness as an attribute & -- & -- & -0.03 (-0.22, 0.14) & -- \\ 
 Hot deck & +0.01 (-0.12, 0.17) & +0.07 (-0.05, 0.23) & -0.24 (-0.40, -0.02) & -0.04 (-0.20, 0.15) \\ 
 K-nearest-neighbors & +0.08 (-0.02, 0.16) & +0.08 (0.01, 0.17) & -0.21 (-0.40, -0.04) & -0.04 (-0.18, 0.10) \\ 
@@ -1189,7 +1215,7 @@ Bayesian regression & +0.01 (-0.15, 0.16) & +0.10 (0.01, 0.22) & -0.32 (-0.54, -
 \midrule
 \multicolumn{1}{l}{+15\% additional missing data} \\ 
 \midrule
-Imputation to the mean & 78.9 (78.5, 79.4) & -- & 78.4 (77.9, 78.9) & -- \\ 
+Imputation to the mean & 78.9 (reference) & -- & 78.4 (reference) & -- \\ 
 Missingness as an attribute & -- & -- & +0.47 (0.26, 0.71) & -- \\ 
 Hot deck & +0.24 (0.04, 0.51) & +0.47 (0.26, 0.76) & -0.13 (-0.40, 0.22) & +0.29 (0.07, 0.58) \\ 
 K-nearest-neighbors & +0.36 (0.21, 0.54) & +0.46 (0.29, 0.62) & -0.13 (-0.39, 0.17) & +0.17 (-0.06, 0.39) \\ 
@@ -1199,7 +1225,7 @@ Bayesian regression & +0.39 (0.17, 0.63) & +0.60 (0.40, 0.83) & -0.15 (-0.46, 0.
 \midrule
 \multicolumn{1}{l}{+30\% additional missing data} \\ 
 \midrule
-Imputation to the mean & 78.4 (77.7, 78.8) & -- & 77.4 (76.8, 78.0) & -- \\ 
+Imputation to the mean & 78.4 (reference) & -- & 77.4 (reference) & -- \\ 
 Missingness as an attribute & -- & -- & +0.91 (0.52, 1.24) & -- \\ 
 Hot deck & +0.34 (-0.03, 0.72) & +0.74 (0.48, 1.11) & -0.19 (-0.53, 0.34) & +0.55 (0.19, 0.86) \\ 
 K-nearest-neighbors & +0.28 (-0.02, 0.47) & +0.43 (0.21, 0.66) & -0.32 (-0.78, -0.04) & -0.01 (-0.33, 0.31) \\ 
@@ -1224,7 +1250,7 @@ Imputation method & Single Imputation & Multiple Imputation & Single Imputation 
 \midrule
 \multicolumn{1}{l}{No additional missing data} \\ 
 \midrule
-Imputation to the mean & 1.36 (0.92, 2.07) & -- & 1.79 (1.34, 2.50) & -- \\ 
+Imputation to the mean & 1.36 (reference) & -- & 1.79 (reference) & -- \\ 
 Missingness as an attribute & -- & -- & +0.01 (-0.53, 0.54) & -- \\ 
 Hot deck & -0.01 (-0.37, 0.29) & 0.00 (-0.39, 0.26) & +0.11 (-0.56, 0.68) & -0.07 (-0.67, 0.67) \\ 
 K-nearest-neighbors & +0.00 (-0.25, 0.24) & -0.02 (-0.25, 0.21) & +0.09 (-0.40, 0.61) & -0.03 (-0.52, 0.67) \\ 
@@ -1234,7 +1260,7 @@ Bayesian regression & -0.01 (-0.40, 0.27) & -0.13 (-0.38, 0.18) & +0.12 (-0.46, 
 \midrule
 \multicolumn{1}{l}{+15\% additional missing data} \\ 
 \midrule
-Imputation to the mean & 2.48 (1.79, 3.93) & -- & 2.51 (1.81, 3.29) & -- \\ 
+Imputation to the mean & 2.48 (reference) & -- & 2.51 (reference) & -- \\ 
 Missingness as an attribute & -- & -- & -0.50 (-1.38, 0.16) & -- \\ 
 Hot deck & -0.76 (-1.95, 0.21) & -0.51 (-2.14, 0.89) & -0.01 (-1.00, 0.66) & +0.69 (-0.47, 1.97) \\ 
 K-nearest-neighbors & -0.82 (-2.01, 0.21) & -0.78 (-1.96, 0.26) & +0.20 (-0.59, 1.01) & +0.23 (-0.73, 1.02) \\ 
@@ -1244,7 +1270,7 @@ Bayesian regression & -0.94 (-2.32, 0.58) & -0.64 (-2.04, 0.89) & +0.19 (-0.76, 
 \midrule
 \multicolumn{1}{l}{+30\% additional missing data} \\ 
 \midrule
-Imputation to the mean & 4.98 (3.42, 7.00) & -- & 3.99 (2.74, 6.22) & -- \\ 
+Imputation to the mean & 4.98 (reference) & -- & 3.99 (reference) & -- \\ 
 Missingness as an attribute & -- & -- & -1.52 (-2.62, -0.35) & -- \\ 
 Hot deck & -2.17 (-4.65, 0.10) & -0.49 (-3.74, 2.34) & -0.53 (-2.79, 1.05) & +1.89 (-0.93, 4.76) \\ 
 K-nearest-neighbors & -1.88 (-3.34, -0.22) & -1.88 (-3.70, -0.14) & -0.41 (-1.72, 0.68) & -0.54 (-2.26, 0.88) \\ 
@@ -1274,7 +1300,7 @@ Bayesian regression & -1.34 (-4.22, 1.59) & -0.23 (-3.15, 2.61) & -0.16 (-2.47, 
 
 }
 
-\caption{Posterior distribution of differences in scaled Brier score values relative to imputation to the mean when different imputation strategies are applied before fitting a risk prediction model. Results are aggregated over scenarios where the outcome is mortality and transplant and the amount of additional missing data is 0\%, 15\%, or 30\%. Posterior probability that the difference in scaled Brier score exceeds 0, indicating an improvement in overall model accuracy, is printed to the right of each distribution. Each multiple imputation strategy and single imputation with missingness incorporated as an attribute had over 90\% posterior predicted probability of increasing the scaled Brier score versus using imputation to the mean.}\label{fig:fig_md_strat_infer_ipa}
+\caption{Posterior distribution of differences in scaled Brier score values (multiplied by 100) relative to imputation to the mean when different imputation strategies are applied before fitting a risk prediction model. Results are aggregated over scenarios where the outcome is mortality and transplant and the amount of additional missing data is 0\%, 15\%, or 30\%. Posterior probability that the difference in scaled Brier score exceeds 0, indicating an improvement in overall model accuracy, is printed to the right of each distribution. Each multiple imputation strategy and single imputation with missingness incorporated as an attribute had over 90\% posterior predicted probability of increasing the scaled Brier score versus using imputation to the mean.}\label{fig:fig_md_strat_infer_ipa}
 \end{figure}
 
 \clearpage
@@ -1285,7 +1311,7 @@ Bayesian regression & -1.34 (-4.22, 1.59) & -0.23 (-3.15, 2.61) & -0.16 (-2.47, 
 
 }
 
-\caption{Posterior distribution of differences in concordance index values relative to imputation to the mean when different imputation strategies are applied before fitting a risk prediction model. Results are aggregated over scenarios where the outcome is mortality and transplant and the amount of additional missing data is 0\%, 15\%, or 30\%. Posterior probability that the difference in concordance index exceeds 0, indicating an improvement in model discrimination, is printed to the right of each distribution. Multiple imputation with predictive mean matching, random forests, and Bayesian regression each had over 90\% posterior predicted probability of increasing the concordance index versus using imputation to the mean.}\label{fig:fig_md_strat_infer_auc}
+\caption{Posterior distribution of differences in concordance index values (multiplied by 100) relative to imputation to the mean when different imputation strategies are applied before fitting a risk prediction model. Results are aggregated over scenarios where the outcome is mortality and transplant and the amount of additional missing data is 0\%, 15\%, or 30\%. Posterior probability that the difference in concordance index exceeds 0, indicating an improvement in model discrimination, is printed to the right of each distribution. Multiple imputation with predictive mean matching, random forests, and Bayesian regression each had over 90\% posterior predicted probability of increasing the concordance index versus using imputation to the mean.}\label{fig:fig_md_strat_infer_auc}
 \end{figure}
 
 \clearpage
@@ -1296,7 +1322,7 @@ Bayesian regression & -1.34 (-4.22, 1.59) & -0.23 (-3.15, 2.61) & -0.16 (-2.47, 
 
 }
 
-\caption{Posterior distribution of differences in calibration error values relative to imputation to the mean when different imputation strategies are applied before fitting a risk prediction model. Results are aggregated over scenarios where the outcome is mortality and transplant and the amount of additional missing data is 0\%, 15\%, or 30\%. Posterior probability that the difference in calibration error is less than 0, indicating an improvement in model calibration, is printed to the right of each distribution. Every imputation strategy evaluated had over 90\% posterior predicted probability of improving model calibration versus using imputation to the mean.}\label{fig:fig_md_strat_infer_cal_error}
+\caption{Posterior distribution of differences in calibration error values (multiplied by 100) relative to imputation to the mean when different imputation strategies are applied before fitting a risk prediction model. Results are aggregated over scenarios where the outcome is mortality and transplant and the amount of additional missing data is 0\%, 15\%, or 30\%. Posterior probability that the difference in calibration error is less than 0, indicating an improvement in model calibration, is printed to the right of each distribution. Every imputation strategy evaluated had over 90\% posterior predicted probability of improving model calibration versus using imputation to the mean.}\label{fig:fig_md_strat_infer_cal_error}
 \end{figure}
 
 \clearpage

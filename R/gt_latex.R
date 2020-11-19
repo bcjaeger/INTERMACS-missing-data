@@ -6,7 +6,7 @@
 ##' @param gt_object
 ##' @param caption
 ##' @param label
-gt_latex <- function(gt_object, caption, label) {
+gt_latex <- function(gt_object, caption, label = NULL, size = NULL) {
 
     header = paste0(
       '\\begin{table} \n \\caption{',caption,'} \n'
@@ -14,6 +14,10 @@ gt_latex <- function(gt_object, caption, label) {
 
     if(!is.null(label)){
       header = paste0(header, '\\label{', label, '} \n')
+    }
+
+    if(!is.null(size)){
+      header = paste0(header, '\\', size, '\n')
     }
 
     gt_object %>%

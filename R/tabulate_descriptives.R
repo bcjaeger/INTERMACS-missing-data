@@ -4,15 +4,20 @@
 ##'
 ##' @title
 ##' @param im
-tabulate_descriptives <- function(im) {
+##' TODO: change status to 6 months, change censored to alive on device
+tabulate_descriptives <- function(im, times) {
 
   tbl_data <- im %>%
     mutate(
       status = case_when(
-        pt_outcome_dead == 1 ~ "Dead",
-        pt_outcome_txpl == 1 ~ "Transplant",
-        pt_outcome_cess == 1 ~ "Cessation of support",
-        TRUE ~ "Censored"
+        pt_outcome_dead == 1 & months_post_implant < times ~ "Dead",
+        pt_outcome_txpl == 1 & months_post_implant < times ~ "Transplant",
+        pt_outcome_cess == 1 & months_post_implant < times ~ "Cessation of support",
+        pt_outcome_dead == 0 &
+          pt_outcome_txpl == 0 &
+          pt_outcome_cess == 0 &
+          months_post_implant < times ~ "Censored",
+          TRUE ~ "Alive on device"
       ),
       demo_race = case_when(
         demo_race_af_amer == 'yes' ~ "Black",
@@ -97,10 +102,10 @@ tabulate_descriptives <- function(im) {
         pi_peripheral_edema = 'Periphal edema',
         pi_lvedd = 'LVEDD',
         pi_device_strategy = "Device strategy",
-        pi_albumin_g_dl = 'Urinary albumin, g/dl',
-        pi_creat_mg_dl = 'Urinary creatinine, mg/dl',
-        pi_bun_mg_dl = 'BUN, mg/dl',
-        pi_bili_total_mg_dl = 'Bilirubin levels, mg/dl'
+        pi_albumin_g_dl = 'Urinary albumin, g/dL',
+        pi_creat_mg_dl = 'Urinary creatinine, mg/dL',
+        pi_bun_mg_dl = 'BUN, mg/dL',
+        pi_bili_total_mg_dl = 'Bilirubin levels, mg/dL'
       )
     )
 
@@ -123,6 +128,16 @@ tabulate_descriptives <- function(im) {
 
   tbl_characteristics <- tbl_data %>%
     mutate(`No. of patients` = 1, .before = 1) %>%
+    mutate(
+      status = factor(
+        status,
+        levels = c('Dead',
+                   'Transplant',
+                   'Cessation of support',
+                   'Alive on device',
+                   'Censored')
+      )
+    ) %>%
     tbl_summary(
       by = status,
       label = list(
@@ -137,10 +152,10 @@ tabulate_descriptives <- function(im) {
         pi_peripheral_edema ~ 'Periphal edema',
         pi_lvedd ~ 'LVEDD',
         pi_device_strategy ~ "Device strategy",
-        pi_albumin_g_dl ~ 'Urinary albumin, g/dl',
-        pi_creat_mg_dl ~ 'Urinary creatinine, mg/dl',
-        pi_bun_mg_dl ~ 'BUN, mg/dl',
-        pi_bili_total_mg_dl ~ 'Bilirubin levels, mg/dl'
+        pi_albumin_g_dl ~ 'Urinary albumin, g/dL',
+        pi_creat_mg_dl ~ 'Urinary creatinine, mg/dL',
+        pi_bun_mg_dl ~ 'BUN, mg/dL',
+        pi_bili_total_mg_dl ~ 'Bilirubin levels, mg/dL'
       ),
       missing = 'no',
       type = list(`No. of patients` ~ 'continuous'),

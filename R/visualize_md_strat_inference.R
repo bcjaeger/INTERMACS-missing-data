@@ -135,8 +135,8 @@ visualize_md_strat_inference <- function(bayes_mccv_fits,
           ) %>%
           mutate(m2 = factor(m2, levels = rev(names(md_method_labels)[-1])))
 
-        probs_upr <- 0.990
-        probs_lwr <- 0.940
+        probs_upr <- 0.95
+        probs_lwr <- 0.70
 
         if(str_detect(.y, 'calibration')){
           probs_lwr <- 0.0010
@@ -180,6 +180,11 @@ visualize_md_strat_inference <- function(bayes_mccv_fits,
               true = table_glue("{1-prob_gt_meanmode}",rspec = temp_rspec),
               false = table_glue("{prob_gt_meanmode}",rspec = temp_rspec)
             ),
+            prob_gt_meanmode = if_else(
+              prob_gt_meanmode == '1.000',
+              '>0.999',
+              prob_gt_meanmode
+            ),
             distribution = if_else(
               condition = md_type == 'Multiple imputation',
               true = x_mi,
@@ -211,7 +216,7 @@ visualize_md_strat_inference <- function(bayes_mccv_fits,
                      alpha = 1/2,
                      show.legend = FALSE,
                      aes(label = prob_gt_meanmode)) +
-          geom_label(data = x_label,
+          geom_text(data = x_label,
                      nudge_y = 7/10,
                      nudge_x = 1/4,
                      aes(label = text),

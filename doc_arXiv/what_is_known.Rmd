@@ -1,7 +1,4 @@
 ---
-date: "`r Sys.Date()`"
-author: "Your Name"
-title: "officedown template"
 output: 
   officedown::rdocx_document:
     mapstyles:
@@ -12,10 +9,12 @@ output:
 
 **What is Known**
 
-- add a sentence
+- Missing data must be imputed in order to fit many standard modeling algorithms used for risk prediction. The prognostic accuracy of these prediction models depends on the imputation strategy. Imputation to the mean is often used in applied practice. 
+
+<br> 
 
 **What the Study Adds**
 
-- add a sentence
+- We assessed how applying strategies other than imputation to the mean to impute missing values would impact the prognostic accuracy of downstream risk prediction models, i.e., models fitted to the imputed data. Our results show that many imputation strategies can improve model prognosis relative to using imputation to the mean.
 
-- add a sentence
+- We measured imputation accuracy as well as prognostic accuracy of downstream risk prediction models using both single and multiple imputation techniques. Our results show that single imputation often has higher accuracy but multiple imputation often leads to greater prognostic accuracy of downstream models. 
