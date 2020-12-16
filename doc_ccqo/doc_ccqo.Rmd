@@ -1,0 +1,842 @@
+---
+title: "Improving Outcome Predictions for Patients Receiving Mechanical Circulatory Support by Optimizing Imputation of Missing Values"
+bibliography: references.bib
+csl: ccqo.csl
+output: 
+  officedown::rdocx_document:
+    reference_docx: style_manuscript_times_new_roman_lines.docx
+---
+
+```{r setup, include=FALSE}
+
+knitr::opts_chunk$set(echo = FALSE,
+                      message = FALSE,
+                      warning = FALSE,
+                      dpi = 300)
+
+library(officedown)
+library(officer)
+library(flextable)
+
+set_flextable_defaults(
+  font.family = "Times New Roman", 
+  theme_fun = "theme_box"
+)
+
+conflicted::conflict_prefer("footnote", "flextable")
+conflicted::conflict_prefer("as_flextable", "flextable")
+
+source("../packages.R")
+R.utils::sourceDirectory('../R')
+
+drake::loadd(im, 
+             times, 
+             rspec,
+             md_method_labels,
+             md_type_labels,
+             model_labels,
+             outcome_labels,
+             additional_missing_labels,
+             tbl_descriptives,
+             tbl_impute_accuracy,
+             tbl_md_strat,
+             fig_md_strat_infer,
+             gt_tbls)
+
+tbl_characteristics <- tbl_descriptives$characteristics
+tbl_missingness <- tbl_descriptives$missingness
+
+```
+
+<!-- Title Page -->
+
+
+<!-- First author’s surname and short title 
+(not to exceed 50 characters, including spaces) -->
+
+__First author's surname and short title:__ Jaeger, Prediction and imputation
+
+<!-- Authors’ names, academic degrees, and affiliations -->
+
+Byron C. Jaeger, PhD^1^, Ryan Cantor, PhD^1,2^, Venkata Sthanam, MS^1,2^, Rongbing Xie, DrPH^1,2^, James K. Kirklin, MD^1,2^, Ramaraju Rudraraju, PhD^1,2^
+
+1. University of Alabama at Birmingham, Birmingham, AL
+2. Kirklin Institute for Research in Surgical Outcomes
+
+<!-- Name and complete address for correspondence (include street name and 
+address as well as post office box, and address for reprints if different 
+from correspondence address), including telephone number, and email address -->
+
+__Address for correspondence__
+Byron C. Jaeger, Ph.D.
+Department of Biostatistics
+University of Alabama at Birmingham
+327M Ryals Public Health Building
+1665 University Blvd
+Birmingham, Alabama 35294-0022
+
+<!-- The total word count of the manuscript, including the title page, 
+abstract, text, references, tables, and figures legends -->
+
+__total word count of the manuscript, including the title page, abstract, text, references, tables, and figures legends:__
+
+\newpage
+
+# ABSTRACT
+
+<!-- Do not cite references in the abstract. -->
+
+<!-- Limit use of acronyms and abbreviations. 
+Define at first use with acronym or abbreviation in parentheses. -->
+
+<!-- Maximum of 300 words -->
+
+<!-- Use the following headings: -->
+
+<!-- Background - rationale for study -->
+
+<!-- Methods - brief presentation of methods; please include sample sizes and numerical data with significance levels throughout -->
+
+<!-- Results—brief presentation of significant results; please include sample sizes and numerical data with significance levels throughout -->
+
+<!-- Conclusions—succinct statement of data interpretation -->
+
+<!-- When applicable, include a fifth heading, "Registration." Please list the URL, as well as the unique identifier, for the publicly accessible website on which the study is registered. -->
+
+__Background__ Risk prediction models play an important role in clinical decision making. When developing risk prediction models, practitioners often impute missing values to the mean. We evaluated the impact of applying other strategies to impute missing values on the prognostic accuracy of downstream risk prediction models, i.e., models fitted to the imputed data. A secondary objective was to compare the accuracy of imputation methods based on artificially induced missing values. To complete these objectives, we used data from the Interagency Registry for Mechanically Assisted Circulatory Support (INTERMACS). 
+
+__Methods__ We applied twelve imputation strategies in combination with two different modeling strategies for mortality and transplant risk prediction following surgery to receive mechanical circulatory support. Model performance was evaluated using Monte-Carlo cross validation and measured based on outcomes 6-months following surgery using the scaled Brier score, concordance index, and calibration error. We used Bayesian hierarchical models to compare model performance. 
+
+__Results__ Multiple imputation with random forests emerged as a robust strategy to impute missing values, increasing model concordance by 0.003 (25th, 75th percentile: 0.0008, 0.052) compared with imputation to the mean for mortality risk prediction using a downstream proportional hazards model. The posterior probability that single and multiple imputation using random forests would improve concordance versus mean imputation was 0.464 and >0.999, respectively.
+
+__Conclusion__ Selecting an optimal strategy to impute missing values such as random forests and applying multiple imputation can improve the prognostic accuracy of downstream risk prediction models.
+
+# Introduction
+
+Heart disease is a leading cause of death in the United States. Heart failure, a primary component of heart disease, affects over 6 million Americans, and for roughly 10% of these patients medical management is no longer effective [@benjamin2017heart; @national2017health]. Mechanical circulatory support (MCS) is a surgical intervention in which a mechanical device is implanted in parallel to the heart to improve circulation [@patel2014contemporary]. Typically, MCS is used while a patient waits for a heart transplant (bridge-to-transplant) or in some cases as an alternative to transplant (destination therapy) [@slaughter2009advanced]. Over 250,000 patients could benefit from MCS [@miller2011left]. However, less than 4,000 new patients receive a long-term MCS device each year, with widely heterogeneous outcomes [@stewart2011keeping]. The 2-year survival probability on MCS ranges from 61% for destination therapy to 78% for bridge-to-transplant [@patel2014contemporary]. Reliable predictions of patient-specific risk to experience key outcomes such as mortality or transplant after receiving MCS can help improve patient selection, inform the design of next generation pumps, and improve patient care strategies.
+
+<br>
+
+<!-- INTERMACS -->
+
+The Interagency Registry  for  Mechanically  Assisted  Circulatory  Support (INTERMACS) was launched to improve MCS patient outcomes through the collection of patient characteristics, medical events, and long terms outcomes at a nationwide level. Currently, INTERMACS comprises over 20,000 patients who have received a MCS device. As the largest registry for data on patients receiving MCS devices, INTERMACS has been leveraged to develop numerous risk prediction models for mortality and other types of adverse events that may occur after receiving a device [@hsich2012should; @cotts2014predictors; @eckman2011survival; @kirklin2017eighth; @kormos2019society; @Adamo950]. An important step for developing risk prediction models is dealing with missing data, which is common in a “real world” database that is not designed for the rigor of data  completeness found in a  clinical trial. While some missing values are related to data entry error, others may relate to instability of a patient’s circulatory status at the time of implant.  For instance, hemodynamic laboratory values are missing for patients in whom  invasive catheterizations were not performed. Patients without invasive catheterizations may be too ill (unstable) to tolerate the procedure. Instead, such patients may, after determination of basic hemodynamics, proceed directly to device placement.
+
+<br>
+
+<!-- Aims of this article -->
+
+The primary aim of this article is to quantify how much the prognostic value of a risk prediction model developed from the INTERMACS registry depends on the strategy that was applied to impute missing data prior to developing the model. A secondary aim is to measure imputation accuracy of each strategy by introducing varying levels of artificial missing data (*i.e.* data amputation) and then imputing it. Because imputation to the mean has been a standard method for multiple annual summaries of the INTERMACS data, we measure the potential improvement in prognostic value of a risk prediction model when other strategies are applied to impute missing data *instead of* imputation to the mean. The over-arching aim is to clarify which imputation strategies are most likely to improve risk prediction (and by extension, quality of care) for patients who receive MCS devices. This investigation can directly inform future analyses of INTERMACS data and provide evidence quantifying the benefit of imputing missing data with sound methodology. 
+
+<br>
+
+# Methods
+
+the INTERMACS registry is a North American observational registry for patients receiving MCS devices that began as a partnership between the National Heart, Lung, and Blood Institute, US Food and Drug Administration, the Centers for Medicaid and Medicare Services, industry, and individual hospitals with the mission of improving MCS outcomes. In 2018, INTERMACS became an official Society of Thoracic Surgeons database. 
+
+<br>
+
+The current analysis was conducted using publicly available data provided by the National Heart, Lung, and Blood Institute (see https://biolincc.nhlbi.nih.gov/studies/intermacs/). We included a contemporary cohort of `r table_value(nrow(im))` patients who received continuous flow LVAD from `r min(im$im_impl_yr)`-`r max(im$im_impl_yr)`. This is a secondary analysis of de-identified data obtained from the National Heart Lung and Blood Institute. Primary data collection is approved through University of Alabama Institutional Review Board and at individual sites. 
+
+<br>
+
+## Outcomes and Predictors
+
+Patient follow-up begins after implantation of a durable, long term MCS device and continues while a device is in place. Registry endpoints include death on a device, heart transplantation, or cessation of support (for recovery and non-recovery reasons). Mortality and transplant after MCS were the primary outcomes for the current study. As there were only `r sum(im$pt_outcome_cess)` cessation of support events, we did not analyze this outcome. For mortality and transplant risk prediction models, we applied event-specific analysis to account for competing risks. For example, in risk prediction models for mortality, patients were censored at time of last contact, transplant, or cessation of support, whichever occurred first. INTERMACS collects pre-implant data on patient characteristics, medical status, and laboratory values. INTERMACS also collects follow-up data at regularly scheduled visits and at occurrence of adverse events such as re-hospitalization. For the current analysis, all pre-implant variables were considered as potential predictors.
+
+<br>
+
+## Statistical Inference and Learning with Missing data 
+
+__Statistical Inference:__ To conduct statistical inference in the context of missing data setting, analysts often create multiple imputed datasets, replicate an analysis in each of them, and then pool their results to obtain valid test statistics for hypothesis testing [@rubin2004multiple]. Imputation strategies that create a single imputed dataset (\eg imputation to the mean) have been shown to increase type I errors (\ie rejecting a true null hypothesis) for inferential statistics by artificially reducing the variance of observed data and ignoring the uncertainty attributed to missing values [@van2018flexible]. To ensure valid inference, imputation models should leverage outcome variables to predict missing predictors [@sterne2009multiple]. When very few data are missing, analysts may apply listwise deletion, *i.e.* removing any observation with at least one missing value. However, listwise deletion can easily lead to biased inference [@van2020rebutting].
+
+<br>
+
+__Statistical Learning:__ In the presence of missing data, the goal of supervised statistical learning is to develop a prediction function for an outcome variable that accurately generalizes to testing data, which may or may not contain missing values [@hastie2009elements]. Because testing data may contain missing values, listwise deletion is not a feasible strategy for statistical learning tasks. In contrast to statistical inference, strategies that create a single imputed dataset are often used for statistical learning [@kuhn2019feature]. Previous work has emphasized the importance of imputation strategies with greater accuracy, suggesting that more accurate imputation strategies lead to better performance of downstream models (*i.e.* models fitted to the imputed data) [@jerez2010missing]. Others have shown that imputation to the mean, model-based imputation, and multiple imputation can provide Bayes-optimal prediction models provided certain assumptions are true, but these assumptions are difficult to validate in applied settings [@josse2019consistency]. 
+
+<br>
+
+__Using outcomes during imputation:__ The outcome variable should be used to impute predictor values for statistical inference, but using outcome variables for this purpose in supervised learning can have unintended consequences in model implementation. For instance, suppose we seek to predict an outcome $Y$ for a patient in the clinical setting. If the patient is missing information for a predictor $X$ and our model's strategy to impute missing values of $X$ leverages the observed value of $Y$, how should we impute $X$? If we do not already know $Y$, then we cannot impute $X$ and hence cannot generate a valid prediction. On the other hand, if we already know $Y$, then we do not need to predict it. Due to these practical considerations and because INTERMACS is often leveraged to create prediction models for clinical practice [@thomas2014pre], we did not leverage outcome variables to impute missing values of predictors in the current analysis.
+
+<br>
+
+## Missing Data Strategies
+
+__Single and multiple imputation:__ Several of the imputation methods we considered allowed for creation of single or multiple imputed datasets. For downstream models fitted to multiple sets of imputed data, we applied the modeling technique to each imputed training set, separately, and then used a pooling technique to generate a single set of predictions based on multiple imputed testing data. Specifically, we created 10 imputed training and testing sets, then applied a modeling procedure to each imputed training set and computed model predictions on the corresponding imputed testing set, which led to 10 sets of predictions. To aggregate these predictions, we computed the median for each patient. Informal experiments where the mean was used instead of the median to aggregate predictions showed little or no difference in the model's prediction accuracy. 
+
+<br>
+
+__Imputation to the mean:__ Imputing data to the mean involves three steps. First, numeric and nominal variables are identified. Second, for each numeric variable, the mean is computed and used to impute missing values in the corresponding variable. Third, for each nominal variable, the mode is computed (because one cannot compute a mean for categorical variables) and used to impute missing values in the corresponding variable. The computed means and modes are then stored for future imputation of testing data. Because imputation to the mean is frequently used in practice, we use it as a reference for comparison of all other strategies to impute missing values. 
+
+<br>
+
+__Bayesian Regression:__ Imputation with Bayesian regression draws imputed values from the posterior distribution of model parameters, accounting for uncertainty in both model error and estimation [@rubin2004multiple]. Multiple imputation with chained equations (MICE), a well known technique for generating multiply imputed data [@azur2011multiple; @van2018flexible; @van2006fully]. In each iteration of MICE, each specified variable in the dataset is imputed using  other variables in the dataset. These iterations are run until convergence criteria have been met.
+
+<br>
+
+__Predictive Mean Matching (PMM):__ PMM computes predicted values from a pre-specified model that treats one incomplete column in the data, $X$, as a dependent variable. For each missing value in $X$, PMM identifies a set of candidate donors based on distance in predicted values of $X$ [@landerman1997empirical]. One donor is randomly drawn from the candidates, and the observed value of the donor is taken to replace the missing value. When missing values were imputed using PMM, we applied MICE to form multiple imputed datasets. For consistency with other approaches, we also generated a single imputed dataset using PMM by randomly selecting one of the multiple datasets imputed.
+
+<br>
+
+__K-Nearest-Neighbors (KNN):__ KNN imputation identifies $k$ `similar' observations (*i.e.* neighbors) for each observation with a missing value in a given variable [@chen2000nearest]. A donor value for the current missing value is generated by sampling or aggregating the values from the $k$ nearest neighbors. In the current analysis, we identified 10 nearest neighbors using Gower's distance [@gower]. When imputing a single dataset using KNN, we aggregated values from 10 nearest neighbors using the median for numeric variables and the mode for categorical variables. When imputing multiple datasets using KNN, we aggregated values from 2, 6, 11, 16, and 20 neighbors, separately, to create 5 imputed datasets.
+
+<br>
+
+__Hot Deck:__ Similar to KNN, hot deck imputation finds $k$ similar observations for each observation with a missing value in a given variable [@andridge2010hotdeck]. However, hot deck imputation uses a less computationally intensive approach, either identifying neighbors at random or using a subset of variables to find similar observations. When imputing a single dataset using hot deck imputation, we used a selection of 5 variables simultaneously to identify nearest neighbors. When imputing multiple datasets using hot deck imputation, we used a separate numeric variable for each dataset.
+
+<br>
+
+__Random forests:__ Random forests grow an ensemble of de-correlated decision trees, where each tree is grown using a bootstrapped replicate of the original training data [@Breiman2001; @hothorn2006survival; @strobl2007bias; @strobl2008conditional; @ishwaran2008random; @jaeger2019oblique]. A particularly helpful feature of random forests is their ability to estimate testing error by aggregating each decision tree's prediction error on data outside of their bootstrapped sample (*i.e.* out-of-bag error). In the current analysis, we conduct MICE using one random forest to impute each variable, separately. For each imputed dataset, we allowed random forests to be re-fitted until out-of-bag error stabilized or a maximum number of iterations was completed. When imputing a single dataset, we used 250 trees per forest and a maximum of 10 iterations. When imputing multiple datasets, we used 50 trees per forest and applied PMM using the random forest's predicted values to impute missing data by sampling one value from a pool of 10 potential donors. 
+
+<br>
+
+__Missingness incorporated as an attribute (MIA):__ MIA is a technique that uses missing status as a predictor rather than explicitly imputing missing values [@twala2009empirical; @ding2010investigation]. MIA adds another category to nominal variables: "Missing". For numeric variables, MIA creates two columns: one where missing values are imputed with positive infinity and the other with negative infinity. Since PH models are not compatible with infinite values, we only use MIA in boosting models. When a decision tree uses a finite cut-point to split a given numeric variable, it will assess the cut-point using both the positive and negative infinite imputed columns, and utilize whichever column provides the best split of the current data. This procedure translates to sending all missing values to the left or to the right when forming two new nodes of the decision tree, using whichever direction results in a better split. 
+
+<!-- __Surrogate splitting:__ When decision trees search for a variable and cut-point to use for growing two new nodes in a decision tree, surrogate splitting will temporarily ignore missing values while searching for an initial split. Once an initial split is chosen, surrogate splitting searches for a split on another variable with observed values for the observations with missing values on the initial splitting variable and creates a surrogate split based on the new variable that is similar to the original split. In the current analysis, we used a maximum of three surrogate splits and sent any remaining missing values to the daughter node with higher sample size. Additionally, we only used surrogate splitting for conditional inference forests, as this strategy is well known and frequently used for these models. -->
+
+<br>
+
+__Assumptions:__ Each missing data strategy poses different assumptions regarding the data and the mechanisms that lead to missing values in the data. Imputation using Bayesian regression makes the same distributional assumptions as the Bayesian models that are applied. The miceRanger algorithm does not make any formal distributional assumptions, as random forests are non-parametric and can thus handle skewed and multi-modal data as well as categorical data that are ordinal or non-ordinal. Hot deck and KNN imputation also do not make distributional assumptions, but implicitly assume that a missing value for a given observation can be approximated by aggregating observed values from the $k$ most similar observations. PMM makes a similar implicit assumption, but is slightly more robust to skewed or multi-modal data because imputed values are sampled directly from observed ones. MIA operates based on an implicit assumption that missingness itself is informative. It is difficult to validate these assumptions in applied settings and also likely that downstream models will perform poorly if an imputation technique's assumptions are invalid.
+
+<br>
+
+## Evaluating Imputation Accuracy
+
+Imputation accuracy was computed for each numerical and nominal variable, separately. The observed values of data that were amputed were used to assess imputation accuracy. As a consequence, we only measured imputation accuracy 15% or 30% of additional missing values were amputed. In the context of this article, the term 'amputation of data' means artificially making observed values missing. Numeric variable imputation accuracy was measured using a re-scaled mean-squared error: $$1 - \frac{\textrm{MSE}(\textrm{current imputation method})}{\textrm{MSE}(\textrm{imputation to the mean})}.$$ This score is greater than 0 if $\textrm{MSE}(\textrm{current imputation method})$ is smaller than $\textrm{MSE}(\textrm{imputation to the mean})$, equal to 0 if the two MSEs are equal, and less than 0 if $\textrm{MSE}(\textrm{current imputation method})$ is greater than $\textrm{MSE}(\textrm{imputation to the mean})$. Nominal variable imputation accuracy was measured using a re-scaled classification accuracy: $$1 - \frac{\textrm{Classification error}(\textrm{current imputation method})}{\textrm{Classification error}(\textrm{imputation to the mean})}.$$ This score is greater than 0 if the classification error of the current imputation method is less than that of imputation to the mean, equal to 0 if the two classification errors are equal, and less than 0 of the classification error of the current imputation method is worse than imputation to the mean. These numeric and nominal scores are analogous to the more well known $R^2$ and Kappa statistics, respectively, but are modified slightly in the current analysis so that imputation to the mean will always have a score of 0. This modification makes it easier to compare the accuracy of each imputation strategy directly with that of imputation to the mean.
+
+<br>
+
+## Risk Prediction Models
+
+We applied two modeling strategies after imputing missing values: 
+
+- Cox proportional hazards (PH) model with forward stepwise variable selection
+- Gradient boosted decision trees (hereafter referred to as 'boosting')
+
+A thorough description of stepwise variable selection and boosting can be found in Sections 6.1.2 and 8.2.2, respectively, of *Introduction to Statistical Learning* [@james2013introduction]. Sir David Cox's PH model is one of the most frequently applied methods for the analysis of right-censored time-to-event outcomes [@kleinbaum2010survival]. According to the PH assumption, the effect of a unit increase in a predictor is multiplicative with respect to a baseline hazard function. Boosting grows a sequence of decision trees, each using information from the previous trees in an attempt to correct their errors [@friedman2001greedy; @chen2016xgboost]. 
+
+<br>
+
+## Evaluation of Predictions 
+
+__The Brier score:__ The prognostic value of each risk prediction model was primarily assessed using the Brier score, which depends on both the discrimination and calibration of predicted risk values [@graf1999assessment; @rufibach2010use]. Let $\tilde{Y}_i(t)$ represent the observed status of individual $i$ at time $t > 0$ in a testing set of $M$ observations. Suppose $\tilde{Y}_i(t)=1$ if there is an observed event at or before $t$ and $\tilde{Y}_i(t)=0$ otherwise. The Brier score is computed with \begin{equation} \label{eqn:brier_score}
+\widehat{\textrm{BS}}(t) = \frac{1}{M} \sum_{i=1}^{M} \widehat{W}_i(t) \left\{ \tilde{Y}_i(t) - \widehat{S}(t \mid \bm{x}_i) \right\}^2, \end{equation} where, for the $i^{th}$ observation, $\widehat{S}(t \mid \bm{x}_i)$ is the estimated probability of survival at time $t$ according to a given risk prediction model, $\bm{x}_i$ is the set of input values for predictor variables in the model, and $\widehat{W}_i(t)$ is the inverse proportional censoring weight at time $t$ [@gerds2006consistent]. Thus, the Brier score is the mean squared difference between observed event status and expected event status according to a RPE at time $t$. Throughout the current analysis, we set $t = `r times`$ months after receiving MCS to focus on short term risk prediction. Models have been developed to simultaneously predict short term and long term mortality risk after receiving MCS, but these are beyond the scope of the current study [@blackstone1986decomposition]. 
+
+<br>
+
+__The scaled Brier score:__ The Brier score is dependent on the rate of observed events, which can make it a difficult metric to interpret. It is often more informative to scale the Brier score based on the Brier score of a naive model. More specifically, for a given risk prediction model, the scaled Brier score is computed as $$\textrm{Scaled } \widehat{\textrm{BS}}(t) \textrm{ of model } = 1 - \frac{\widehat{\textrm{BS}}(t) \textrm{ of model}}{\widehat{\textrm{BS}}(t) \textrm{ of naive model}}.$$ As the Brier score for risk prediction is analogous to mean-squared error for prediction of a continuous outcome, the scaled Brier score is analogous to the $R^2$ statistic. Similar to the $R^2$ statistic, a scaled $\widehat{\textrm{BS}}(t)$ of 1.00 and 0.00 indicate a perfect and worthless model, respectively. In our analyses, a Kaplan-Meier estimate based on the training data (*i.e.* a risk prediction model that did not use any predictor variables) provided the naive prediction. In the current analysis, we multiply scaled Brier score values by 100 for ease of interpretation. 
+
+<br>
+
+__Discrimination and calibration:__ The discrimination of a risk prediction model measures the probability that the model will successfully identify which of two observations is at higher risk for the event of interest. We estimated discrimination using a time-dependent concordance (C-) index that accounted for covariate-dependent censoring. A C-index of 0.50 and 1.00 correspond to worthless and perfect discrimination, respectively. Similar to the scaled Brier score, we multiply C-index values by 100 for ease of interpretation. Calibration slope plots measure a risk prediction model's absolute accuracy. We estimated calibration error by averaging the squared distance between expected and observed event rates according to a calibration plot. Full description of these evaluation metrics are available [@gerds2014calibration; @gerds2013estimating]. 
+
+<br>
+
+## Internal Validation via Monte-Carlo Cross-Validation (MCCV)
+
+To assess the prognostic value of each missing data strategy, we internally validated a total of 23 modeling algorithm based on combinations of imputation strategies and modeling strategies described above. For convenience, we use the term `modeling algorithm' to denote the combination of a missing data strategy and a modeling strategy (*e.g.* imputation using mean/mode values followed by fitting the PH model with stepwise variable selection) [@kuhn2013applied]. We conducted internal validation using 200 replicates of Monte-Carlo cross validation, a resampling technique for internal validation.
+
+<br>
+
+__Steps taken in each replicate:__ In each replicate of Monte-Carlo cross validation, 50% of the available data were used for model training and testing. All predictor variables with < 50% missing values were considered for imputation and subsequent model development. Among these variables, artificial missingness (0%, 15%, or 30% additional missing values) was induced based on patient age, with younger and older patients more likely to have missing data compared to patients who were between 40 and 65 years of age. Prior to imputation, 50 predictor variables were selected using a boosting model that quantified variable importance as the fractional contribution of each predictor to the model based on the total gain attributed to using the predictor while growing decision trees. Imputation was conducted in the training and testing sets, separately, for each imputation strategy. Although some imputation strategies (*e.g.* KNN and random forests) can impute data in the testing set using models fitted to the training set, others (*e.g.* Bayesian regression, PMM, and hot deck) cannot. Therefore, to ensure fair comparisons in our experiment, each imputation procedure imputed data in the training set using models fitted to the training set and then imputed data in the testing set using models fitted to the testing set. After imputation, Cox PH and boosting models were applied to each imputed dataset, separately. Last, model predictions for death and transplant were computed at `r times` months following MCS surgery.
+
+<br>
+
+__Bayesian analysis of model performance:__ To determine whether any of the imputation methods described above had improved upon imputation to the mean, we applied Bayesian hierarchical models to analyze differences in scaled Brier score [@benavoli2017time]. This strategy provides a flexible framework to conduct hypothesis testing and also accounts for correlation occurring within each replicate of Monte-Carlo cross validation. Specifically, within each replicate of Monte-Carlo cross validation, the performance of different modeling algorithms are correlated because they are trained and tested using the same data.
+
+<br>
+
+## Statistical analysis
+
+Participant characteristics were tabulated for the overall population and stratified by event status. Continuous and categorical variables were summarized as mean (standard deviation) and percent, respectively. The number and proportion of missing values were also tabulated for the overall population and stratified by event status. Missing data patterns were visualized for the overall population using an UpSet plot [@lex2014upset]. All of the proceeding analyses were conducted using resampling results from Monte-Carlo cross validation. Imputation accuracy was aggregated for all numeric and nominal variables to create two overall scores for each imputed dataset. For imputation methods that created multiple datasets, scores were aggregated over each dataset to provide a single summary score. The distribution (*i.e.* 25^th^, 50^th^, and 75^th^ percentile) of the scaled Brier score was estimated for each modeling algorithm. 
+
+<br>
+
+We split our results from Monte-carlo cross validation into four datasets based on outcome (mortality or transplant) and modeling procedure (Cox PH or boosting). For each dataset, we fit one hierarchical Bayesian model where the dependent variable was scaled Brier score and independent variables included the imputation strategy applied and the amount of artificially missing data (0%, 15%, or 30%) induced before imputation. With each model, we estimated the difference in scaled Brier score of downstream models when random forests, Bayesian regression, PMM, hot deck, MIA, or KNN imputation were applied to impute missing values instead of imputation to the mean.
+
+<br>
+
+## Computational Details
+
+SAS software (version 9.4) and Python (version 3.8.2) were used to create analytic data for the current study [@van1995python; @sas2013]. These analyses were completed using The American Heart Association Precision Medicine Platform (https://precision.heart.org/). Base R (version 4.0.3) was used in combination with a number of open-source R packages (*e.g.* drake, tidyverse, naniar, table.glue, mice, miceRanger, and others) to conduct statistical analyses and create the current manuscript [@drake; @naniar; @mice; @miceRanger; @table.glue; @tidyverse; @rstanarm; @tidybayes; @survival; @tidymodels; @riskRegression]. Our R code is available on GitHub (see [https://github.com/bcjaeger/INTERMACS-missing-data](https://github.com/bcjaeger/INTERMACS-missing-data)) [@byron_2020_4247449]. We used Cheaha, a high performance computing cluster at University of Alabama at Birmingham, to perform the 200 Monte-Carlo cross validation runs [@cheaha]. 
+
+<br>
+
+# RESULTS
+
+```{r inline_characteristics}
+
+trunc_events <- im %>% 
+  summarize(
+    n_dead = sum(pt_outcome_dead == 1 & months_post_implant < times),
+    n_txpl = sum(pt_outcome_txpl == 1 & months_post_implant < times),
+    n_cens = sum(pt_outcome_cess == 0 & 
+                 pt_outcome_dead == 0 &
+                 pt_outcome_txpl == 0 & 
+                 months_post_implant < times),
+    p_dead = 100 * mean(pt_outcome_dead == 1 & months_post_implant < times),
+    p_txpl = 100 * mean(pt_outcome_txpl == 1 & months_post_implant < times),
+    p_cens = 100 * mean(pt_outcome_cess == 0 & 
+                 pt_outcome_dead == 0 &
+                 pt_outcome_txpl ==0 & 
+                 months_post_implant < times)
+  ) %>% 
+  transmute(
+    dead = table_glue("{n_dead} ({p_dead}%)"),
+    txpl = table_glue("{n_txpl} ({p_txpl}%)"),
+    cens = table_glue("{n_cens} ({p_cens}%)")
+  ) %>% 
+  as.list() 
+
+age_overall <- inline_text(tbl_characteristics, 
+                           variable = 'demo_age', 
+                           column = 'stat_0')
+
+male_overall <- inline_text(tbl_characteristics, 
+                            variable = 'demo_gender',
+                            level = 'Male',
+                            column = 'stat_0')
+
+white_overall <- inline_text(tbl_characteristics, 
+                             variable = 'demo_race',
+                             level = 'White',
+                             column = 'stat_0')
+
+inline_missingness <- as_inline(tbl_missingness,
+                                tbl_variables = c('status', 'variable'),
+                                tbl_value = 'tbl_value')
+
+```
+
+<!-- update this to reflect administrative censoring instead of ltfu -->
+
+<br>
+
+__Patient Characteristics:__ During the first `r times` months after receiving MCS, `r trunc_events$dead` patients died and `r trunc_events$txpl` had a transplant. In total, `r trunc_events$cens` patients had a follow-up time < `r times` months and were considered right-censored in the current analysis. The mean (standard deviation) age of patients was `r age_overall` years, `r white_overall`% of patients identified as white and `r male_overall`% were male (Table 1). 
+
+<br>
+
+__Missing data:__ Many predictor variables exhibited similar proportions of missing values in different outcome groups (Table 2). However, the number (percent) of missing values for surgery time was an exception, with `r inline_missingness$Overall$im_surgery_time` in the overall population, `r inline_missingness$Dead$im_surgery_time` among patients who died, and `r inline_missingness$Censored$im_surgery_time` among patients who were censored. This pattern is likely attributable to the later introduction of surgery time into the INTERMACS registry compared to other variables. The collection of surgery time in the INTERMACS registry began on May 30, 2014. Additionally, missing values for surgery time were frequently accompanied by missing values for CV pressure (Figure 1).  
+
+```{r inline_impute_accuracy}
+
+si_higher_accuracy <- tbl_impute_accuracy %>% 
+  drop_na() %>% 
+  summarize(
+    n_nominal = sum(nominal_est_si > nominal_est_mi),
+    n_numeric = sum(numeric_est_si > numeric_est_mi),
+    n_total = n()
+  )
+
+top_accuracy <- tbl_impute_accuracy %>% 
+  select(-c(nominal_si, nominal_mi, numeric_si, numeric_mi)) %>% 
+  pivot_longer(cols = -c(md_method, additional_missing_pct),
+               names_to = c('score', 'estimand', 'md_type'),
+               names_sep = '_',
+               values_to = 'value') %>% 
+  filter(estimand == 'est') %>% 
+  group_by(md_method, additional_missing_pct, score, md_type) %>% 
+  summarize(value = mean(value), .groups = 'drop') %>% 
+  arrange(desc(value)) %>% 
+  group_by(score, additional_missing_pct) %>% 
+  slice(1) %>% 
+  left_join(tbl_impute_accuracy) %>% 
+  ungroup() %>% 
+  split(list(.$score, .$additional_missing_pct)) %>% 
+  map(select, md_method, nominal_si, numeric_si)
+
+break_ci <- function(x, pre_label){
+  
+  data <- strsplit(x, split = '\\n\\(') %>% 
+    unlist() %>% 
+    str_remove('\\)') %>% 
+    set_names(c('estimate', 'interval')) %>% 
+    as.list()
+  
+  glue("{pre_label}{data$estimate}, 95% CI {data$interval}")
+  
+}
+
+```
+
+<br>
+
+__Imputation accuracy:__ Single imputation strategies were more accurate than their counterparts using multiple imputation in `r si_higher_accuracy$n_nominal` out of `r si_higher_accuracy$n_total` comparisons of nominal scores and `r si_higher_accuracy$n_numeric` out of `r si_higher_accuracy$n_total` comparisons of numeric scores (Table 3). When an additional 15% of data were missing, single imputation KNN obtained the highest nominal accuracy (`r break_ci(top_accuracy$nominal.15$nominal_si, pre_label = 'score: ')`) and single imputation with random forests obtained the highest numeric accuracy (`r break_ci(top_accuracy$numeric.15$numeric_si, pre_label = 'score: ')`). When an additional 30% of data were missing, imputation to the mean obtained the highest numeric and nominal scores.
+
+```{r inline_md_strat}
+
+inline_md_strat <- tbl_md_strat %>%
+  bind_rows(.id = 'outcome') %>% 
+  mutate(tbv = table_glue("{est} ({lwr}, {upr})", rspec = rspec)) %>% 
+  split(f = list(.$outcome,
+                 .$model,
+                 .$md_strat,
+                 .$additional_missing_pct)) %>% 
+  map(pull, tbv)
+
+```
+
+<br>
+
+## Scaled Brier score
+
+__Mortality risk prediction:__ When no additional data were amputed and imputation to the mean was applied before fitting risk prediction models, the median (25^th^, 75^th^ percentile) scaled Brier score was `r inline_md_strat$dead.ipa.cph.meanmode_si.0` for Cox PH and `r inline_md_strat$dead.ipa.xgb.meanmode_si.0` for boosting models (Table 4; top panel). Multiple imputation strategies universally obtained higher scaled Brier scores versus their single imputation counterparts. Multiple imputation using random forests provided the highest scaled Brier score compared to other strategies, leading to a median (25^th^, 75^th^ percentile) increase in the scaled Brier score of `r inline_md_strat$dead.ipa.cph.ranger_mi.0` for Cox PH and `r inline_md_strat$dead.ipa.xgb.ranger_mi.0` for boosting models. These performance increments improved when an additional 15% and 30% of data were amputed (Table 4; middle and bottom panel).
+
+<br>
+
+__Transplant risk prediction__: When no additional data were amputed and imputation to the mean was applied before fitting risk prediction models, the median (25^th^, 75^th^ percentile) scaled Brier score was `r inline_md_strat$txpl.ipa.cph.meanmode_si.0` for Cox PH and `r inline_md_strat$txpl.ipa.xgb.meanmode_si.0` for boosting models (Table 5; top panel). For Cox PH models, imputation to the mean provided the lowest scaled Brier score, and random forest imputation led to a median (25^th^, 75^th^ percentile) increase of `r inline_md_strat$txpl.ipa.cph.ranger_mi.0` versus imputation to the mean. For boosting models, surprisingly, imputation to the mean provided a higher scaled Brier score than all imputation methods except for multiple imputation using Bayesian regression. When an additional 15% and 30% of data were amputed, the performance increments corresponding to the use of multiple imputation increased for both Cox PH and boosting models (Table 5; middle and bottom panel).
+
+<br>
+
+## Discrimination and calibration
+
+__Mortality risk prediction:__ Regardless of how much additional data were amputed, boosting models obtained higher median C-indices than PH models for prediction of 6-month mortality risk (Table 6). In addition, all models that used multiple imputation consistently obtained higher median C-indices compared to their counterparts using single imputation. When 0 and 15% additional data were amputed, median calibration error was lower for PH models compared to boosting models, but boosting models obtained lower median calibration error when 30\% additional data were amputed (Table 7). Almost all imputation strategies provided lower median calibration error compared with imputation to the mean.
+
+<br>
+
+__Transplant risk prediction:__ For all amounts of additional data amputed, PH models obtained higher median C-indices than boosting models for prediction of 6-month transplant risk (Table 8). Similar to mortality risk prediction, multiple imputation strategies generally provided higher C-indices than their counterparts using single imputation strategy. For boosting models, MIA provided higher C-indices compared to all other single imputation strategies and had similar or superior performance compared to several multiple imputation strategies. Differences in calibration error were minor when no additional missing data were amputed (Table 9). When an additional 30% of data were amputed, boosting models using MIA obtained lower calibration error than any other strategy. 
+
+<br>
+
+## Bayesian analysis of model performance
+
+```{r}
+
+fig_md_strat_inline <- fig_md_strat_infer %>% 
+  map(~ map(.x$probs, as_inline, 'm2', 'prob_gt_meanmode'))
+
+inline_ipa_rf <- fig_md_strat_inline$ipa$`Multiple imputation`$ranger
+inline_auc_rf <- fig_md_strat_inline$auc$`Multiple imputation`$ranger
+
+```
+
+Adjusting for the amount of additional missing data amputed and the outcome variable, the posterior probability that an imputation strategy would improve the scaled Brier score of a downstream model relative to imputation to the mean was maximized by using multiple imputation with random forests (probability of improvement: `r inline_ipa_rf`; Figure 2). Similarly, multiple imputation using random forests was estimated to have the highest posterior probability of improving the C-index in comparison to using imputation to the mean (probability of improvement: `r inline_auc_rf`; Figure 3). However, the estimated posterior probability of a reduction in calibration was >0.999 when using either single or multiple imputation with random forests compared with imputation to the mean (Figure 4). Although imputation using random forest was estimated to be the best overall option, there was moderate to strong evidence that MIA and each multiple imputation strategy we applied would improve prognostic accuracy of downstream models compared with imputation to the mean. 
+
+<br>
+
+# DISCUSSION
+
+In this article, we leveraged INTERMACS registry data to evaluate how the use of different imputation strategies prior to fitting a risk prediction model would impact the external prognostic accuracy of the model. External prognostic accuracy was measured at `r times` months after receiving MCS, and the primary measure of accuracy was the scaled Brier score. We evaluated the performance of 12 imputation strategies in a broad range of settings by varying (1) the amount of additional missing data amputed prior to performing imputation, (2) the type of risk prediction model applied after imputation, and (3) the outcome variable for the risk prediction model. Our resampling experiment indicated that conducting multiple imputation has a high likelihood of increasing the downstream scaled Brier score and C-index of risk prediction models compared with imputation to the mean. Additionally, multiple imputation with random forests emerged as the imputation strategy that maximized the probability of developing a more prognostic model compared with imputation to the mean. 
+
+<br>
+
+In previous studies involving the INTERMACS data registry, imputation to the mean has been applied prior to developing a mortality risk prediction model [@hsich2012should; @cotts2014predictors; @eckman2011survival; @kirklin2017eighth; @kormos2019society; @Adamo950]. An interesting recent study indicates that imputation to the mean can provide an asymptotically consistent prediction model, given the prediction model is flexible and non-linear [@josse2019consistency]. However, theoretical results for finite samples have not yet been established. Our results provide relevant data for the finite sample case, suggesting that using imputation strategies considered in the current study instead of imputation to the mean can improve the prognostic accuracy of downstream models, particularly if multiple imputation is applied. Imputation to the mean should be avoided in future analyses of the INTERMACS registry and analyses where inflexible models are applied.
+
+<br>
+
+Previous research has also established evidence in favor of applying multiple imputation to improve the prognostic value of risk prediction models. For example, Hassan and Atiya demonstrated superior downstream prediction using an ensemble multiple imputation method on synthetic data with continuous outcomes [@hassan2007regression]. Similarly, Nanni et. al demonstrated superior performance in downstream prediction when missing values were imputed using their proposed ensemble multiple imputation method [@nanni2012classifier]. Notably, the authors artificially induced missing values in these studies and the largest real dataset that was evaluated contained less than 700 observations. An article by Jerez et. al evaluated missing data strategies based on the downstream task of fitting a neural network and predicting early breast cancer relapse [@jerez2010missing]. The authors found that KNN imputation led to risk prediction models with the highest discrimination and lowest calibration error. Results from the current study are consistent with these previous findings but also extend their results by providing evidence from a larger source of data (*i.e.* INTERMACS) and dealing with 'real-world' missing values. 
+
+<br>
+
+Others have previously evaluated imputation techniques based on the accuracy with which these techniques impute missing values in the training data [@tutz2015improved; @little2013joys; @steele2018machine]. While it is intuitive to hypothesize that more accurate imputation will provide more prognostic downstream models, our results do not support this supposition. For example, when an additional 30% of missing data were amputed, none of the missing data strategies we implemented obtained higher accuracy than imputation to the mean and multiple imputation strategies obtained particularly low accuracy. However, *all* of the multiple imputation strategies improved the prognostic accuracy of downstream models relative to imputation to the mean when an additional 30% of data were amputed prior to imputation of missing values. This result is likely explained by the bias variance tradeoff. In particular, single imputation techniques may lead to prediction models with lower bias but higher variance than multiple imputation techniques.  
+
+<br>
+
+__Strengths and limitations:__ The current analysis has a number of strengths. We leveraged the INTERMACS data registry, comprising one of the largest cohorts of patients who received MCS. We applied a well known resampling method to internally validate modeling algorithms for risk prediction. We also made our analysis R code available in a public repository (https://github.com/bcjaeger/INTERMACS-missing-data). Last, the approach presented in this paper provides a general framework that can be applied in other studies where missing data are imputed prior to fitting a risk prediction model. The current analysis should also be interpreted in the context of known limitations. We considered a small subset of existing strategies to impute missing data, and other strategies may have provided stronger improvements compared with imputation to the mean. The models we studied obtained low values of scaled Brier score, indicating low prediction accuracy. It is unclear how results may vary for models with higher prediction accuracy. Also, it was not feasible to use only the training data to impute missing values in the testing data due to a lack of available software. Although the miceRanger R package allows imputation of new data using existing models, few software packages for imputation allow users to implement multiple imputation with this protocol. Future analyses should introduce more flexible software and hands-on tutorials so that investigators can optimize imputation of missing data.
+
+<br>
+
+__Conclusion:__ Selecting an optimal strategy to impute missing values such as random forests can impact the prognostic accuracy of downstream risk prediction models. In the current analysis, conducting multiple imputation using random forests emerged as an optimal strategy to impute missing values in the INTERMACS data. This investigation can directly inform future analyses of INTERMACS data and provide evidence quantifying the benefit of imputing missing data with sound methodology. 
+
+<br>
+
+__Sources of Funding:__ This work is supported by the American Heart Association, grant# 18AIML34280052. De-identified data provided from the INTERMACS contract with from the National Heart, Lung, and Blood Institute; National Institutes of Health; and Department of Health and Human Services, under contract# HHSN268201100025C.
+
+<!-- Table : characteristics -->
+\newpage
+
+Table 1: Participant characteristics overall and stratified by event status at `r times` months following surgery to receive mechanical circulatory support. The majority of patients were male and nearly all mechanical circulatory support devices were left-ventricular assistance devices.
+`r fp_par(line_spacing = 1)`
+
+```{r tbl_characteristics}
+
+tbl_characteristics %>% 
+  as_flex_table() %>% 
+  width(width = 0.9) %>% 
+  width(j=1, width = 1.5) %>% 
+  fontsize(size = 12, part = 'all') %>% 
+  footnote(
+    i = 1, j = 1, 
+    ref_symbols = '*',
+    part = 'header',
+    value = as_paragraph(
+      'Table values are mean (standard deviation) or %'
+    )
+  ) %>% 
+  footnote(
+    i = 1, j = 1, 
+    ref_symbols = '', 
+    value = as_paragraph('Abbreviations: LVEDD = left ventricular end diastolic dimension; CV = central venous; BUN = blood urea nitrogen; CPB = cardiopulmonary bypass')
+  )
+
+
+```
+
+\newpage
+
+Table 2: Number (percent) of missing values for a selection of predictor variables in the overall population and in subgroups based on event status. Many predictor variables exhibited similar proportions of missing values in different outcome groups, but surgery time was an exception. This pattern is likely due to the fact that surgery time was added to the INTERMACS data after 2012.
+`r fp_par(line_spacing = 1)`
+
+```{r tbl_missingness, results = 'asis'}
+
+tbl_missingness %>%
+  select(-variable) %>%
+  pivot_wider(values_from = tbl_value,
+              names_from = status) %>%
+  filter(label != 'status',
+         label != 'months_post_implant') %>%
+  flextable(cwidth = 1.3) %>% 
+  set_header_labels(label = 'Variable') %>% 
+  fontsize(size = 12, part = 'all') %>% 
+  align(align = 'center', part = 'all') %>% 
+  align(j = 1, align = 'left', part = 'all') %>% 
+  width(width = 0.9) %>% 
+  width(j = 1, width = 2) %>% 
+  footnote(
+    i = 1, j = 1, 
+    ref_symbols = '', 
+    value = as_paragraph('Abbreviations: LVEDD = left ventricular end diastolic dimension; CV = central venous; BUN = blood urea nitrogen; CPB = cardiopulmonary bypass')
+  )
+
+```
+
+\newpage
+
+Table 3: Accuracy of strategies to impute artificial missing data. Table values are the median change in accuracy (25th, 75th percentile) relative to the accuracy of imputation to the mean. In general, multiple imputation strategies had lower accuracy than single imputation strategies, and few imputation strategies were more accurate than imputation to the mean.
+`r fp_par(line_spacing = 1)`
+
+```{r}
+
+tbl_impute_accuracy %>% 
+  select(md_method:numeric_mi) %>% 
+  mutate(
+    across(
+      ends_with("_mi"),
+      ~ if_else(is.na(.x), '---', .x)
+    ),
+    md_method = factor(
+      md_method,
+      levels = names(md_method_labels),
+      labels = md_method_labels),
+    additional_missing_pct = factor(
+      additional_missing_pct,
+      levels = additional_missing_labels[-1],
+      labels = names(additional_missing_labels)[-1]
+    )
+  ) %>%
+  arrange(additional_missing_pct, md_method) %>% 
+  as_grouped_data(groups = 'additional_missing_pct') %>% 
+  as_flextable(hide_grouplabel = T) %>% 
+  add_header_row(
+    values = c("Imputation method", 
+               "Nominal variables", 
+               "Numeric variables"),
+    colwidths = c(1, 2, 2)
+  ) %>% 
+  set_header_labels(
+    nominal_si = 'Single imputation',
+    nominal_mi = 'Multiple imputation',
+    numeric_si = 'Single imputation',
+    numeric_mi = 'Multiple imputation',
+    md_method = 'Imputation method'
+  ) %>% 
+  bg(i = ~!is.na(additional_missing_pct), bg = 'grey') %>% 
+  italic(i = ~!is.na(additional_missing_pct), italic = TRUE) %>% 
+  theme_box() %>% 
+  merge_v(part = 'header', j = 1) %>% 
+  width(width = 1.2) %>% 
+  width(j = 1, width = 1.5) %>% 
+  fontsize(size = 12, part = 'all') %>% 
+  align(align = 'center', part = 'all') %>% 
+  align(j = 1, align = 'left', part = 'all')
+  
+```
+
+\newpage
+
+Table 4: Median (25th, 75th percentile) change in scaled Brier score when different imputation strategies were applied to training and testing sets instead of imputation to the mean prior to developing a risk prediction model for mortality. Table values show the scaled Brier score when the imputation method is imputation to the mean and the change in scaled Brier score relative to imputation to the mean for other imputation strategies. All table values are multiplied by 100 for ease of interpretation. Multiple imputation with random forests leads to the highest scaled Brier score for both models and when 0%, 15%, or 30% of additional data in the training and testing sets were set to missing.
+`r fp_par(line_spacing = 1)`
+
+```{r}
+
+gt_tbls$md_strat$dead.ipa %>% 
+  arrange(additional_missing_pct, md_method) %>% 
+  mutate(
+    across(
+      where(is.character),
+      ~ if_else(is.na(.x), '---', .x)
+    )
+  ) %>% 
+  as_grouped_data(groups = 'additional_missing_pct') %>% 
+  as_flextable(hide_grouplabel = TRUE) %>% 
+  add_header_row(
+    values = c("Imputation method", 
+               "Proportional hazards", 
+               "Gradient boosted decision trees"),
+    colwidths = c(1, 2, 2)
+  ) %>% 
+  set_header_labels(
+    `SI_Proportional hazards` = 'Single imputation',
+    `MI_Proportional hazards` = 'Multiple imputation',
+    `SI_Gradient boosted decision trees` = 'Single imputation',
+    `MI_Gradient boosted decision trees` = 'Multiple imputation',
+    md_method = 'Imputation method'
+  ) %>% 
+  bg(i = ~!is.na(additional_missing_pct), bg = 'grey') %>% 
+  italic(i = ~!is.na(additional_missing_pct), italic = TRUE) %>% 
+  theme_box() %>% 
+  merge_v(part = 'header', j = 1) %>% 
+  width(width = 1.2) %>% 
+  width(j = 1, width = 1.5) %>% 
+  fontsize(size = 12, part = 'all') %>% 
+  align(align = 'center', part = 'all') %>% 
+  align(j = 1, align = 'left', part = 'all')
+
+```
+
+\newpage
+
+Table 5: Median (25th, 75th percentile) change in scaled Brier score when different imputation strategies were applied to training and testing sets instead of imputation to the mean prior to developing a risk prediction model for transplant. Table values show the scaled Brier score when the imputation method is imputation to the mean and the change in scaled Brier score relative to imputation to the mean for other imputation strategies. All table values are multiplied by 100 for ease of interpretation. While there was very little difference in scaled Brier score values when 0% of additional data were set to missing in the training and testing sets, missingness incorporated as an attribute, predictive mean matching, random forests, and Bayesian regression provided models with higher scaled Brier scores when 15% or 30% of additional missing data were amputed.
+`r fp_par(line_spacing = 1)`
+
+```{r}
+
+gt_tbls$md_strat$txpl.ipa %>% 
+  arrange(additional_missing_pct, md_method) %>% 
+  mutate(
+    across(
+      where(is.character),
+      ~ if_else(is.na(.x), '---', .x)
+    )
+  ) %>% 
+  as_grouped_data(groups = 'additional_missing_pct') %>% 
+  as_flextable(hide_grouplabel = TRUE) %>% 
+  add_header_row(
+    values = c("Imputation method", 
+               "Proportional hazards", 
+               "Gradient boosted decision trees"),
+    colwidths = c(1, 2, 2)
+  ) %>% 
+  set_header_labels(
+    `SI_Proportional hazards` = 'Single imputation',
+    `MI_Proportional hazards` = 'Multiple imputation',
+    `SI_Gradient boosted decision trees` = 'Single imputation',
+    `MI_Gradient boosted decision trees` = 'Multiple imputation',
+    md_method = 'Imputation method'
+  ) %>% 
+  bg(i = ~!is.na(additional_missing_pct), bg = 'grey') %>% 
+  italic(i = ~!is.na(additional_missing_pct), italic = TRUE) %>% 
+  theme_box() %>% 
+  merge_v(part = 'header', j = 1) %>% 
+  width(width = 1.2) %>% 
+  width(j = 1, width = 1.5) %>% 
+  fontsize(size = 12, part = 'all') %>% 
+  align(align = 'center', part = 'all') %>% 
+  align(j = 1, align = 'left', part = 'all')
+
+```
+
+\newpage
+
+Table 6: Median (25th, 75th percentile) change in concordance index when different imputation strategies were applied to training and testing sets instead of imputation to the mean prior to developing a risk prediction model for mortality. Table values show the concordance index when the imputation method is imputation to the mean and the change in concordance index relative to imputation to the mean for other imputation strategies. All table values are multiplied by 100 for ease of interpretation. Multiple imputation with random forests led to the highest concordance index for boosting models when 0%, 15%, or 30% of additional data in the training and testing sets were set to missing. For proportional hazards models, multiple imputation with nearest neighbors or random forests was the most effective strategy.
+`r fp_par(line_spacing = 1)`
+
+```{r}
+
+gt_tbls$md_strat$dead.auc %>% 
+  arrange(additional_missing_pct, md_method) %>% 
+  mutate(
+    across(
+      where(is.character),
+      ~ if_else(is.na(.x), '---', .x)
+    )
+  ) %>% 
+  as_grouped_data(groups = 'additional_missing_pct') %>% 
+  as_flextable(hide_grouplabel = TRUE) %>% 
+  add_header_row(
+    values = c("Imputation method", 
+               "Proportional hazards", 
+               "Gradient boosted decision trees"),
+    colwidths = c(1, 2, 2)
+  ) %>% 
+  set_header_labels(
+    `SI_Proportional hazards` = 'Single imputation',
+    `MI_Proportional hazards` = 'Multiple imputation',
+    `SI_Gradient boosted decision trees` = 'Single imputation',
+    `MI_Gradient boosted decision trees` = 'Multiple imputation',
+    md_method = 'Imputation method'
+  ) %>% 
+  bg(i = ~!is.na(additional_missing_pct), bg = 'grey') %>% 
+  italic(i = ~!is.na(additional_missing_pct), italic = TRUE) %>% 
+  theme_box() %>% 
+  merge_v(part = 'header', j = 1) %>% 
+  width(width = 1.2) %>% 
+  width(j = 1, width = 1.5) %>% 
+  fontsize(size = 12, part = 'all') %>% 
+  align(align = 'center', part = 'all') %>% 
+  align(j = 1, align = 'left', part = 'all')
+
+```
+
+\newpage
+
+Table 7: Median (25th, 75th percentile) change in calibration error when different imputation strategies were applied to training and testing sets instead of imputation to the mean prior to developing a risk prediction model for mortality. Table values show the calibration error when the imputation method is imputation to the mean and the change in calibration error relative to imputation to the mean for other imputation strategies. All table values are multiplied by 100 for ease of interpretation. As more data in the training and testing sets were set to missing, single and multiple imputation with random forests emerged as the strategies with the lowest calibration error.
+`r fp_par(line_spacing = 1)`
+
+```{r}
+
+gt_tbls$md_strat$dead.cal_error %>% 
+  arrange(additional_missing_pct, md_method) %>% 
+  mutate(
+    across(
+      where(is.character),
+      ~ if_else(is.na(.x), '---', .x)
+    )
+  ) %>% 
+  as_grouped_data(groups = 'additional_missing_pct') %>% 
+  as_flextable(hide_grouplabel = TRUE) %>% 
+  add_header_row(
+    values = c("Imputation method", 
+               "Proportional hazards", 
+               "Gradient boosted decision trees"),
+    colwidths = c(1, 2, 2)
+  ) %>% 
+  set_header_labels(
+    `SI_Proportional hazards` = 'Single imputation',
+    `MI_Proportional hazards` = 'Multiple imputation',
+    `SI_Gradient boosted decision trees` = 'Single imputation',
+    `MI_Gradient boosted decision trees` = 'Multiple imputation',
+    md_method = 'Imputation method'
+  ) %>% 
+  bg(i = ~!is.na(additional_missing_pct), bg = 'grey') %>% 
+  italic(i = ~!is.na(additional_missing_pct), italic = TRUE) %>% 
+  theme_box() %>% 
+  merge_v(part = 'header', j = 1) %>% 
+  width(width = 1.2) %>% 
+  width(j = 1, width = 1.5) %>% 
+  fontsize(size = 12, part = 'all') %>% 
+  align(align = 'center', part = 'all') %>% 
+  align(j = 1, align = 'left', part = 'all')
+
+```
+
+\newpage
+
+Table 8: Median (25th, 75th percentile) change in concordance index when different imputation strategies were applied to training and testing sets instead of imputation to the mean prior to developing a risk prediction model for transplant. Table values show the concordance index when the imputation method is imputation to the mean and the change in concordance index relative to imputation to the mean for other imputation strategies. All table values are multiplied by 100 for ease of interpretation. While there was little difference in concordance index when 0% of additional data were set to missing in the training and testing sets, missingness incorporated as an attribute, predictive mean matching, random forests, and Bayesian regression provided models with higher concordance indices when 15% or 30% of additional missing data were amputed.
+`r fp_par(line_spacing = 1)`
+
+```{r}
+
+gt_tbls$md_strat$txpl.auc %>% 
+  arrange(additional_missing_pct, md_method) %>% 
+  mutate(
+    across(
+      where(is.character),
+      ~ if_else(is.na(.x), '---', .x)
+    )
+  ) %>% 
+  as_grouped_data(groups = 'additional_missing_pct') %>% 
+  as_flextable(hide_grouplabel = TRUE) %>% 
+  add_header_row(
+    values = c("Imputation method", 
+               "Proportional hazards", 
+               "Gradient boosted decision trees"),
+    colwidths = c(1, 2, 2)
+  ) %>% 
+  set_header_labels(
+    `SI_Proportional hazards` = 'Single imputation',
+    `MI_Proportional hazards` = 'Multiple imputation',
+    `SI_Gradient boosted decision trees` = 'Single imputation',
+    `MI_Gradient boosted decision trees` = 'Multiple imputation',
+    md_method = 'Imputation method'
+  ) %>% 
+  bg(i = ~!is.na(additional_missing_pct), bg = 'grey') %>% 
+  italic(i = ~!is.na(additional_missing_pct), italic = TRUE) %>% 
+  theme_box() %>% 
+  merge_v(part = 'header', j = 1) %>% 
+  width(width = 1.2) %>% 
+  width(j = 1, width = 1.5) %>% 
+  fontsize(size = 12, part = 'all') %>% 
+  align(align = 'center', part = 'all') %>% 
+  align(j = 1, align = 'left', part = 'all')
+
+```
+
+\newpage
+
+Table 9: Median (25th, 75th percentile) change in calibration error when different imputation strategies were applied to training and testing sets instead of imputation to the mean prior to developing a risk prediction model for transplant. Table values show the calibration error when the imputation method is imputation to the mean and the change in calibration error relative to imputation to the mean for other imputation strategies. All table values are multiplied by 100 for ease of interpretation. As more data in the training and testing sets were set to missing, single and multiple imputation with nearest neighbors emerged as the optimal strategy for proportional hazards models while missingness incorporated as an attributed emerged an the optimal strategy for boosting models.
+`r fp_par(line_spacing = 1)`
+
+```{r}
+
+gt_tbls$md_strat$txpl.cal_error %>% 
+  arrange(additional_missing_pct, md_method) %>% 
+  mutate(
+    across(
+      where(is.character),
+      ~ if_else(is.na(.x), '---', .x)
+    )
+  ) %>% 
+  as_grouped_data(groups = 'additional_missing_pct') %>% 
+  as_flextable(hide_grouplabel = TRUE) %>% 
+  add_header_row(
+    values = c("Imputation method", 
+               "Proportional hazards", 
+               "Gradient boosted decision trees"),
+    colwidths = c(1, 2, 2)
+  ) %>% 
+  set_header_labels(
+    `SI_Proportional hazards` = 'Single imputation',
+    `MI_Proportional hazards` = 'Multiple imputation',
+    `SI_Gradient boosted decision trees` = 'Single imputation',
+    `MI_Gradient boosted decision trees` = 'Multiple imputation',
+    md_method = 'Imputation method'
+  ) %>% 
+  bg(i = ~!is.na(additional_missing_pct), bg = 'grey') %>% 
+  italic(i = ~!is.na(additional_missing_pct), italic = TRUE) %>% 
+  theme_box() %>% 
+  merge_v(part = 'header', j = 1) %>% 
+  width(width = 1.2) %>% 
+  width(j = 1, width = 1.5) %>% 
+  fontsize(size = 12, part = 'all') %>% 
+  align(align = 'center', part = 'all') %>% 
+  align(j = 1, align = 'left', part = 'all')
+
+```
+
+\newpage
+
+
+```{r upset, dpi = 300, fig.height = 6, fig.width = 6.5, fig.align='center', fig.cap="An upset plot showing three variables from the INTERMACS registry and all combinations of missing patterns. The bottom left plot shows the number of missing values for each variable, separately. The top right plot shows the number of missing values for each combination of the three variables. For example, there were 2,618 rows in the overall INTERMACS data where both CV pressure and surgery time were missing."}
+
+gg_miss_upset(tbl_descriptives$upset, nsets = 3, text.scale = 1.3)
+
+```
+
+
+\newpage
+
+```{r fig_md_strat_infer_ipa, dpi = 300, fig.height = 6, fig.width = 7, fig.align='center', fig.cap = "Posterior distribution of differences in scaled Brier score values (multiplied by 100) relative to imputation to the mean when different imputation strategies are applied before fitting a risk prediction model. Results are aggregated over scenarios where the outcome is mortality and transplant and the amount of additional missing data is 0%, 15%, or 30%. Posterior probability that the difference in scaled Brier score exceeds 0, indicating an improvement in overall model accuracy, is printed to the right of each distribution. Each multiple imputation strategy and single imputation with missingness incorporated as an attribute had over 90% posterior predicted probability of increasing the scaled Brier score versus using imputation to the mean."}
+
+fig_md_strat_infer$ipa$fig
+
+```
+
+\newpage
+
+```{r fig_md_strat_infer_auc, dpi = 300, fig.height = 6, fig.width = 7, fig.align='center', fig.cap = "Posterior distribution of differences in concordance index values (multiplied by 100) relative to imputation to the mean when different imputation strategies are applied before fitting a risk prediction model. Results are aggregated over scenarios where the outcome is mortality and transplant and the amount of additional missing data is 0%, 15%, or 30%. Posterior probability that the difference in concordance index exceeds 0, indicating an improvement in model discrimination, is printed to the right of each distribution. Multiple imputation with predictive mean matching, random forests, and Bayesian regression each had over 90% posterior predicted probability of increasing the concordance index versus using imputation to the mean."}
+
+fig_md_strat_infer$auc$fig
+
+```
+
+\newpage
+
+```{r fig_md_strat_infer_cal_error, dpi = 300, fig.height = 6, fig.width = 7, fig.align='center', fig.cap = "Posterior distribution of differences in calibration error values (multiplied by 100) relative to imputation to the mean when different imputation strategies are applied before fitting a risk prediction model. Results are aggregated over scenarios where the outcome is mortality and transplant and the amount of additional missing data is 0%, 15%, or 30%. Posterior probability that the difference in calibration error is less than 0, indicating an improvement in model calibration, is printed to the right of each distribution. Every imputation strategy evaluated had over 90% posterior predicted probability of improving model calibration versus using imputation to the mean."}
+
+fig_md_strat_infer$cal_error$fig
+
+```
+
+\newpage
+
+# REFERENCES

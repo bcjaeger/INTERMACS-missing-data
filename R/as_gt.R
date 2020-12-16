@@ -8,7 +8,8 @@ as_gt <- function(tbl_md_strat,
                   model_labels,
                   additional_missing_labels,
                   md_method_labels,
-                  rspec) {
+                  rspec,
+                  return_gt_table = TRUE) {
 
   gt_md_strat <- tbl_md_strat %>%
     map(
@@ -25,7 +26,7 @@ as_gt <- function(tbl_md_strat,
             table_val = if_else(
               md_strat == 'meanmode_si',
               true = table_glue("{est} (reference)", rspec=rspec),
-              false = table_glue("{pm(est)}{est} ({lwr}, {upr})", rspec=rspec)
+              false = table_glue("{pm(est)}{est}\n({lwr}, {upr})", rspec=rspec)
             )
           ) %>%
           select(-est, -lwr, -upr) %>%
@@ -50,28 +51,36 @@ as_gt <- function(tbl_md_strat,
             `MI_Gradient boosted decision trees`
           )
 
-        cols <- str_detect(names(gt_data), pattern = 'MI$|SI$')
-        cols <- names(gt_data)[cols]
+        if(return_gt_table){
 
-        gt(gt_data,
-           groupname_col = 'additional_missing_pct',
-           rowname_col = 'md_method') %>%
-          tab_stubhead(label = 'Imputation method') %>%
-          fmt_missing(columns = everything(),
-                      missing_text = '--') %>%
-          tab_spanner(label = 'Proportional hazards',
-                      columns = c("SI_Proportional hazards",
-                                  "MI_Proportional hazards")) %>%
-          tab_spanner(label = "Gradient boosted decision trees",
-                      columns = c("SI_Gradient boosted decision trees",
-                                  "MI_Gradient boosted decision trees")) %>%
-          cols_label(
-            "MI_Proportional hazards" = 'Multiple Imputation',
-            "SI_Proportional hazards" = 'Single Imputation',
-            "MI_Gradient boosted decision trees" = 'Multiple Imputation',
-            "SI_Gradient boosted decision trees" = 'Single Imputation',
-          ) %>%
-          cols_align('center')
+          cols <- str_detect(names(gt_data), pattern = 'MI$|SI$')
+          cols <- names(gt_data)[cols]
+
+          gt(gt_data,
+             groupname_col = 'additional_missing_pct',
+             rowname_col = 'md_method') %>%
+            tab_stubhead(label = 'Imputation method') %>%
+            fmt_missing(columns = everything(),
+                        missing_text = '--') %>%
+            tab_spanner(label = 'Proportional hazards',
+                        columns = c("SI_Proportional hazards",
+                                    "MI_Proportional hazards")) %>%
+            tab_spanner(label = "Gradient boosted decision trees",
+                        columns = c("SI_Gradient boosted decision trees",
+                                    "MI_Gradient boosted decision trees")) %>%
+            cols_label(
+              "MI_Proportional hazards" = 'Multiple Imputation',
+              "SI_Proportional hazards" = 'Single Imputation',
+              "MI_Gradient boosted decision trees" = 'Multiple Imputation',
+              "SI_Gradient boosted decision trees" = 'Single Imputation',
+            ) %>%
+            cols_align('center')
+
+        } else {
+
+          gt_data
+
+        }
 
       }
     )

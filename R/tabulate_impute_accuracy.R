@@ -35,18 +35,18 @@ tabulate_impute_accuracy <- function(mc_cv_results) {
   data_tbl %>%
     mutate(
       nominal = table_glue(
-        "{pm(nominal_est)}{nominal_est} ({nominal_lwr}, {nominal_upr})"
+        "{pm(nominal_est)}{nominal_est}\n({nominal_lwr}, {nominal_upr})"
       ),
       numeric = table_glue(
-        "{pm(numeric_est)}{numeric_est} ({numeric_lwr}, {numeric_upr})"
+        "{pm(numeric_est)}{numeric_est}\n({numeric_lwr}, {numeric_upr})"
       )
     ) %>%
     mutate(
       across(
         .cols = c(nominal, numeric),
         .fns = ~str_replace(.x,
-                            pattern = '0\\.00 \\(0\\.00, 0\\.00\\)',
-                            replacement = '0 \\(reference\\)')
+                            pattern = fixed('0.00\n(0.00, 0.00)'),
+                            replacement = fixed('0 (reference)'))
       )
     ) %>%
     separate(md_strat, into = c('md_method', 'md_type')) %>%

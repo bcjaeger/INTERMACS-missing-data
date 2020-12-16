@@ -91,14 +91,15 @@ the_plan <- drake_plan(
                   model_labels,
                   additional_missing_labels,
                   md_method_labels,
-                  rspec),
+                  rspec,
+                  return_gt_table = FALSE),
 
-  arxiv_preprint = target(
-    command = {
-      rmarkdown::render(knitr_in("doc_arxiv/doc_arxiv.Rmd"))
-      file_out("doc_arxiv/doc_arxiv.pdf")
-    }
-  )
+  # arxiv_preprint = target(
+  #   command = {
+  #     rmarkdown::render(knitr_in("doc_arxiv/doc_arxiv.Rmd"))
+  #     file_out("doc_arxiv/doc_arxiv.pdf")
+  #   }
+  # )
 
 
 )

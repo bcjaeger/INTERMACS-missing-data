@@ -88,7 +88,7 @@ tabulate_descriptives <- function(im, times) {
     transmute(
       status,
       variable,
-      tbl_value = table_glue("{n_miss} ({pct_miss}%)", rspec = rspec),
+      tbl_value = table_glue("{n_miss}\n({pct_miss}%)", rspec = rspec),
       label = recode(
         variable,
         demo_age = "Age, years",
