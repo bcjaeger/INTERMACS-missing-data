@@ -104,7 +104,3 @@ the_plan <- drake_plan(
 
 )
 
-# risk_evaluation %>%
-#   filter(additional_missing_pct == 0) %>%
-#   group_by(model, outcome, md_strat) %>%
-#   summarize(across(auc:GND_pvalue, median, na.rm = T))

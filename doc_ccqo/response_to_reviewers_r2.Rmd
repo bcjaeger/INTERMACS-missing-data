@@ -1,0 +1,51 @@
+---
+date: "`r Sys.Date()`"
+title: "Response to reviewers"
+output: 
+  officedown::rdocx_document:
+    reference_docx: style_manuscript_times_new_roman.docx
+---
+
+We thank the editors and reviewers for the opportunity to re-submit our manuscript. In response to the reviewer's excellent feedback, we have made minor changes to the manuscript and detailed each change in our responses to the reviewer's comment.
+
+# Reviewer 2
+
+__Comment__: The authors have made substantial changes in this revision. This revised analysis conducted a thorough comparison among 12 missing data imputation strategies regarding the imputation accuracy, c-statistics, calibration errors, and scaled Brier score. The authors suggest that the advanced imputation strategies, particularly random forest with multiple imputation, have a high probability of improving the downstream prediction models when comparing to the imputation to mean. However, the magnitude of improvement is very minor, the recommendation of missing imputation strategies remains unclear. 
+
+__Response__: Thank you for your review and helpful feedback. In our update, we make recommendations on which imputation strategy to use in the Discussion section and in a summary table: FILL IN
+
+1. Can the authors comment whether the choice of imputation strategies may depend on the downstream purposes of using the missing imputation? I found it's hard to conclude a best missing imputation approach, which can vary by the % of missing data, prediction outcomes, etc. For example, for PH model of transplant, Bayesian regression with multiple imputations has a relatively high scaled Brier score, high c-statistics. For PH model of mortality, random forest with multiple imputations has a relatively high scaled Brier score, c-statistics, lower calibration errors. Furthermore, the difference across different imputing methods are very small based on the tables. Given the highest imputation accuracy with imputation to the mean, will the authors recommend using imputation to the mean when downstream modeling only involved a small amount of missingness? 
+
+__Response__: This is a good suggestion. We have commented on how the context of an analysis impacts the choice of how to impute missing values in the revised manuscript. In the Discussion Section, we write "in scenarios where few variables have missing values and the proportion of missing values is low, imputation to the mean is likely to be just as good as more computational strategies. As the degree of missingness increases, using multiple imputation and flexible imputation models appears to offer a small increment in the prognostic accuracy of downstream models."   
+
+2. Page 23. Line 1-2 Given the small magnitude of improvement and the complexity of the advanced imputation approaches, it's still reasonable to use mean imputation or treating the missingness as the attribute for developing risk prediction models. In addition, imputation to the mean has the highest imputation accuracy among all other approaches. Thus I think the avoidance of imputation to the mean is an overstatement. Can the authors provide comments that under which context should a more complex imputation method be applied? 
+
+__Response__: The reviewer points to our conclusion on page 23, lines 1-2. We believe our conclusion is consistent with the points the reviewer has made, but we did not write it clearly enough in our first revision. Josse et al. showed that you get Bayes optimal models in some scenarios when imputation to the mean is applied to the training/testing sets. This result is contingent on using a flexible model (e.g., boosting) that can create decision boundaries around the imputed mean value. Our conclusion has been modified to make this more clear: "Future INTERMACS analyses developing risk prediction models should consider imputation to the mean a valid strategy when the proportion of missing values is low or a flexible modeling strategy that can create decision boundaries around the imputed mean value is applied."   
+
+3. The scaled Brier score is closed to zero for the risk prediction models, indicating very poor prediction accuracy. The missing imputation strategies however did not improve the prediction accuracy of the prediction model regarding the scaled Brier score (Table 4 and 5). The authors have taken steps to improve c-statistics in their RSF, but the improvement is small. For prediction models with binary and continuous outcomes, will the authors have similar findings? 
+
+__Response:__ In response to the reviewer's thoughtful comments, we hypothesize that different imputation strategies would lead to small or moderate improvements in downstream classification or regression models. however, the current analysis does not examine outcomes that are continuous or binary, and therefore we do not comment on those domains in the paper. 
+
+Regarding the low improvements to prognostic accuracy in Tables 4 and 5, we note that mortality and transplant events are difficult to predict using pre-implant data. We hypothesize that downstream prognostic accuracy would have increased by a larger amount if these outcomes were more correlated to the predictors that had missing values. We have added the following text on line X page Y: "Our results are limited in scope to mortality and transplant outcomes, which are difficult to predict using data collected prior to the surgery where mechanical circulatory support is applied. Future analyses should investigate whether greater improvements are obtained based on the choice of imputation strategy for outcomes with greater correlation to the predictors that are being imputed."
+
+4. Although the authors have provided Figure 1 showing the missing patterns among three variables, the authors haven't explored the reasons why they're missing. For example, it is possible that the variables are missing from one INTERMACS center that failed to submit the data. And the variables can also be missing for a certain time period when a center hasn't fully started their data participation or the data version did not include such variables. Under this scenario, it will make sense to perform listwise deletion based on centers or time periods. 
+
+__Response__ We appreciate the reviewer's helpful suggestion. We reviewed potential mechanisms for missingness in all of the analysis variables and found some additional notes to include in our revision. On lines X-X of page Y, we write "Data on surgery time and CV pressure was recorded less frequently in the INTERMACS registry prior to 2014, and the  combination of missing CV pressure and surgery time is the most frequently occurring missing pattern in the current analysis (Figure 1). In addition, missing values for peripheral edema occurred more frequently in 2014-2015 due to FILL IN"
+
+<!-- table(is.na(im$pi_peripheral_edema), im$im_impl_yr) -->
+
+5. To improve readability, I would suggest that: 
+5.1 Put some details of methods into a technical appendix along with the code.
+
+__Response__: We have developed an online appendix to the manuscript that provides code and additional methodological details. The document comprising this content is available on GitHub: FILL IN LINK.
+
+5.2 Page 7 line 8: It will be good to give some examples of outcome variables Y. 
+
+__Response__: We have replaced the generic terms $Y$ and $X$ with "mortality risk" and "bilirubin"
+
+5.3 If possible, summarize the features, pros, and cons for each strategy (e.g., aspects of imputation accuracy, scaled Brier score, c-index, calibration errors) and recommendation into one table. 
+
+__Response__: We have included a table that lists pros and cons for each imputation strategy we analyzed. The table also gives a recommendation for these strategies based on data from the current analysis.
+
+
+

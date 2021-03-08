@@ -9,6 +9,21 @@ output:
 
 ```{r setup, include=FALSE}
 
+# About this document:
+
+# 1. This r-markdown file is built using officedown, an R package
+# designed to create reproducible MS word and powerpoint documents.
+
+# 2. The R project that this document lives in uses drake, an R
+# package designed to facilitate workflow by creating, storing,
+# and lazily updated analysis targets (see R/plan.R and README.Rmd)
+
+# 3. With the relevant packages downloaded and access to the INTERMACS 
+# analytic data (available on BIOLINCC), results in this publication
+# can be reproduced. However, noting that we utilized a parallel 
+# computing cluster to complete the Monte-Carlo Cross-validation
+# experiment, some results may require high computational overhead.
+
 knitr::opts_chunk$set(echo = FALSE,
                       message = FALSE,
                       warning = FALSE,
