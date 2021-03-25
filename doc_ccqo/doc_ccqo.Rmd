@@ -61,6 +61,30 @@ drake::loadd(im,
 tbl_characteristics <- tbl_descriptives$characteristics
 tbl_missingness <- tbl_descriptives$missingness
 
+# inline_md_strat
+
+inline_md_strat <- tbl_md_strat %>%
+  bind_rows(.id = 'outcome') %>% 
+  mutate(tbv = table_glue("{est} ({lwr}, {upr})", rspec = rspec)) %>% 
+  split(f = list(.$outcome,
+                 .$model,
+                 .$md_strat,
+                 .$additional_missing_pct)) %>% 
+  map(pull, tbv)
+
+rspec_unscaled <- round_spec() %>% 
+  round_using_decimal(digits = 4)
+
+inline_md_strat_unscaled <- tbl_md_strat %>%
+  bind_rows(.id = 'outcome') %>% 
+  mutate(tbv = table_glue("{est/100} ({lwr/100}, {upr/100})", 
+                          rspec = rspec_unscaled)) %>% 
+  split(f = list(.$outcome,
+                 .$model,
+                 .$md_strat,
+                 .$additional_missing_pct)) %>% 
+  map(pull, tbv)
+
 ```
 
 <!-- Title Page -->
@@ -118,11 +142,34 @@ Define at first use with acronym or abbreviation in parentheses. -->
 
 <!-- When applicable, include a fifth heading, "Registration." Please list the URL, as well as the unique identifier, for the publicly accessible website on which the study is registered. -->
 
+```{r}
+
+# inline results for abstract
+
+inline_auc_rf_vs_mean <- 
+  inline_md_strat_unscaled$dead.auc.cph.ranger_mi.0 %>% 
+  bracket_insert_left('25th, 75th percentile: ')
+
+prob_rf_mi_gt_mean <- 
+  fig_md_strat_infer$auc$probs$`Multiple imputation` %>% 
+  filter(m2 == 'ranger') %>% 
+  pull(prob_gt_meanmode)
+
+prob_rf_si_gt_mean <- 
+  fig_md_strat_infer$auc$probs$`Single imputation` %>% 
+  filter(m2 == 'ranger') %>% 
+  pull(prob_gt_meanmode)
+
+
+
+```
+
+
 __Background__ Risk prediction models play an important role in clinical decision making. When developing risk prediction models, practitioners often impute missing values to the mean. We evaluated the impact of applying other strategies to impute missing values on the prognostic accuracy of downstream risk prediction models, i.e., models fitted to the imputed data. A secondary objective was to compare the accuracy of imputation methods based on artificially induced missing values. To complete these objectives, we used data from the Interagency Registry for Mechanically Assisted Circulatory Support (INTERMACS). 
 
 __Methods__ We applied twelve imputation strategies in combination with two different modeling strategies for mortality and transplant risk prediction following surgery to receive mechanical circulatory support. Model performance was evaluated using Monte-Carlo cross validation and measured based on outcomes 6-months following surgery using the scaled Brier score, concordance index, and calibration error. We used Bayesian hierarchical models to compare model performance. 
 
-__Results__ Multiple imputation with random forests emerged as a robust strategy to impute missing values, increasing model concordance by 0.003 (25th, 75th percentile: 0.0008, 0.052) compared with imputation to the mean for mortality risk prediction using a downstream proportional hazards model. The posterior probability that single and multiple imputation using random forests would improve concordance versus mean imputation was 0.464 and >0.999, respectively.
+__Results__ Multiple imputation with random forests emerged as a robust strategy to impute missing values, increasing model concordance by `r inline_auc_rf_vs_mean` compared with imputation to the mean for mortality risk prediction using a downstream proportional hazards model. The posterior probability that single and multiple imputation using random forests would improve concordance versus mean imputation was `r prob_rf_si_gt_mean` and `r prob_rf_mi_gt_mean`, respectively.
 
 __Conclusion__ Selecting an optimal strategy to impute missing values such as random forests and applying multiple imputation can improve the prognostic accuracy of downstream risk prediction models.
 
@@ -376,19 +423,6 @@ break_ci <- function(x, pre_label){
 <br>
 
 __Imputation accuracy:__ Single imputation strategies were more accurate than their counterparts using multiple imputation in `r si_higher_accuracy$n_nominal` out of `r si_higher_accuracy$n_total` comparisons of nominal scores and `r si_higher_accuracy$n_numeric` out of `r si_higher_accuracy$n_total` comparisons of numeric scores (Table 3). When an additional 15% of data were missing, single imputation KNN obtained the highest nominal accuracy (`r break_ci(top_accuracy$nominal.15$nominal_si, pre_label = 'score: ')`) and single imputation with random forests obtained the highest numeric accuracy (`r break_ci(top_accuracy$numeric.15$numeric_si, pre_label = 'score: ')`). When an additional 30% of data were missing, imputation to the mean obtained the highest numeric and nominal scores.
-
-```{r inline_md_strat}
-
-inline_md_strat <- tbl_md_strat %>%
-  bind_rows(.id = 'outcome') %>% 
-  mutate(tbv = table_glue("{est} ({lwr}, {upr})", rspec = rspec)) %>% 
-  split(f = list(.$outcome,
-                 .$model,
-                 .$md_strat,
-                 .$additional_missing_pct)) %>% 
-  map(pull, tbv)
-
-```
 
 <br>
 

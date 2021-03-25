@@ -30,9 +30,10 @@ Regarding the low improvements to prognostic accuracy in Tables 4 and 5, we note
 
 4. Although the authors have provided Figure 1 showing the missing patterns among three variables, the authors haven't explored the reasons why they're missing. For example, it is possible that the variables are missing from one INTERMACS center that failed to submit the data. And the variables can also be missing for a certain time period when a center hasn't fully started their data participation or the data version did not include such variables. Under this scenario, it will make sense to perform listwise deletion based on centers or time periods. 
 
-__Response__ We appreciate the reviewer's helpful suggestion. We reviewed potential mechanisms for missingness in all of the analysis variables and found some additional notes to include in our revision. On lines X-X of page Y, we write "Data on surgery time and CV pressure was recorded less frequently in the INTERMACS registry prior to 2014, and the  combination of missing CV pressure and surgery time is the most frequently occurring missing pattern in the current analysis (Figure 1). In addition, missing values for peripheral edema occurred more frequently in 2014-2015 due to FILL IN"
+__Response__ We appreciate the reviewer's helpful suggestion. We reviewed potential mechanisms among the variables described in Figure 1. Due to the lack of indication for specific INTERMACS site in the de-identified data, we were not able to assess missingness based on center. On lines X-X of page Y, we write "Data on surgery time and CV pressure was recorded less frequently in the INTERMACS registry prior to 2014, and the  combination of missing CV pressure and surgery time is the most frequently occurring missing pattern in the current analysis (Figure 1). In addition, missing values for peripheral edema occurred more frequently in 2014-2015 due to revisions to the data collection forms. CV pressure is measured using an invasive hemodynamic procedure. Roughly 80% of the missing values for CV pressure were attributable to this procedure not being done."
 
 <!-- table(is.na(im$pi_peripheral_edema), im$im_impl_yr) -->
+<!-- table(is.na(im$im_surgery_time), im$im_impl_yr) -->
 
 5. To improve readability, I would suggest that: 
 5.1 Put some details of methods into a technical appendix along with the code.
@@ -45,7 +46,7 @@ __Response__: We have replaced the generic terms $Y$ and $X$ with "mortality ris
 
 5.3 If possible, summarize the features, pros, and cons for each strategy (e.g., aspects of imputation accuracy, scaled Brier score, c-index, calibration errors) and recommendation into one table. 
 
-__Response__: We have included a table that lists pros and cons for each imputation strategy we analyzed. The table also gives a recommendation for these strategies based on data from the current analysis.
+__Response__: We have included a table that lists features, pros, and cons for each imputation strategy we analyzed. The table also gives a recommendation for these strategies based on data from the current analysis.
 
 
 

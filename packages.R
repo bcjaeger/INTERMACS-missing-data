@@ -19,6 +19,7 @@ library(knitr)
 library(kableExtra)
 library(gtsummary)
 library(gt)
+library(synthpop)
 ## data analysis
 library(tidyverse)
 library(rstanarm)

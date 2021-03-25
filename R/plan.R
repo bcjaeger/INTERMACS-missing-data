@@ -49,6 +49,7 @@ the_plan <- drake_plan(
 
   # creates intermacs_clean.csv
   im = clean_intermacs(),
+  im_fake = make_intermacs_fake(im),
 
   # tabulate descriptives
   tbl_descriptives = tabulate_descriptives(im, times),
